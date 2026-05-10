@@ -54,7 +54,6 @@ export default function Navbar() {
     } catch (_) {}
     navigate("/");
   };
-   console.log("USER:", user);
   // User display helpers
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)

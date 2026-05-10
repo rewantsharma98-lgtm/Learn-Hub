@@ -7,7 +7,7 @@ import {
   useGetCourseProgressQuery,
 } from "@/features/api/courseApi";
 
-import { PlayCircle, CheckCircle, ChevronDown, FileText } from "lucide-react";
+import { PlayCircle, CheckCircle, ChevronDown, FileText, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 
