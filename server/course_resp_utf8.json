@@ -1,0 +1,103 @@
+﻿{
+    "success":  true,
+    "course":  {
+                   "_id":  "69ff8c35789f1858b0d7495c",
+                   "title":  "Python for Data Science \u0026 Machine Learning",
+                   "description":  "Unlock the power of data. Learn Python, Pandas, Scikit-Learn, and build real-world machine learning models.",
+                   "thumbnail":  "https://images.unsplash.com/photo-1527477396000-e27163b481c2?w=800\u0026q=80",
+                   "category":  "Data Science",
+                   "level":  "Intermediate",
+                   "hours":  58,
+                   "lectures":  [
+                                    {
+                                        "videoEmbedUrl":  "",
+                                        "unitTitle":  "Introduction",
+                                        "_id":  "6a00303a5d5dcad0fd62fb06",
+                                        "title":  "lecture 1",
+                                        "isPreviewFree":  true,
+                                        "order":  0,
+                                        "unitId":  "6a0030345d5dcad0fd62fb05",
+                                        "course":  "69ff8c35789f1858b0d7495c",
+                                        "resources":  [
+
+                                                      ],
+                                        "createdAt":  "2026-05-10T07:14:02.331Z",
+                                        "updatedAt":  "2026-05-10T13:18:39.351Z",
+                                        "__v":  0,
+                                        "description":  "",
+                                        "duration":  null,
+                                        "videoUrl":  "https://youtu.be/EJ-_OSP4hBg?si=a_xzIeKGq5EPeWI9",
+                                        "notes":  ""
+                                    },
+                                    {
+                                        "videoEmbedUrl":  "",
+                                        "unitTitle":  "Introduction",
+                                        "_id":  "6a00389d5d5dcad0fd62fb07",
+                                        "title":  "lecture2 ",
+                                        "isPreviewFree":  true,
+                                        "order":  1,
+                                        "unitId":  "6a0030345d5dcad0fd62fb05",
+                                        "course":  "69ff8c35789f1858b0d7495c",
+                                        "resources":  [
+
+                                                      ],
+                                        "createdAt":  "2026-05-10T07:49:49.715Z",
+                                        "updatedAt":  "2026-05-10T13:30:10.236Z",
+                                        "__v":  0,
+                                        "description":  "jhrjjrjgh",
+                                        "duration":  null,
+                                        "notes":  "",
+                                        "videoUrl":  ""
+                                    },
+                                    {
+                                        "_id":  "6a00885564ea744b42fa1960",
+                                        "title":  "lecture3",
+                                        "description":  "",
+                                        "videoUrl":  "",
+                                        "videoEmbedUrl":  "",
+                                        "duration":  0,
+                                        "isPreviewFree":  false,
+                                        "notes":  "",
+                                        "order":  2,
+                                        "unitTitle":  "Introduction",
+                                        "course":  "69ff8c35789f1858b0d7495c",
+                                        "resources":  [
+
+                                                      ],
+                                        "createdAt":  "2026-05-10T13:29:57.221Z",
+                                        "updatedAt":  "2026-05-10T13:29:57.221Z",
+                                        "__v":  0
+                                    }
+                                ],
+                   "__v":  1,
+                   "createdAt":  "2026-05-09T19:34:13.400Z",
+                   "updatedAt":  "2026-05-10T13:29:57.384Z",
+                   "certificateEnabled":  true,
+                   "enrolledStudents":  [
+
+                                        ],
+                   "isFree":  true,
+                   "language":  "English",
+                   "learningOutcomes":  [
+
+                                        ],
+                   "price":  0,
+                   "rating":  0,
+                   "requirements":  [
+
+                                    ],
+                   "resources":  [
+
+                                 ],
+                   "reviewsCount":  0,
+                   "sections":  [
+                                    "6a0030345d5dcad0fd62fb05"
+                                ],
+                   "status":  "Draft",
+                   "tags":  [
+
+                            ],
+                   "totalDuration":  0,
+                   "totalStudents":  0
+               }
+}

@@ -1,0 +1,68 @@
+import dotenv from "dotenv";
+dotenv.config(); 
+
+import express from "express";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import connectDB from "./config/mongodb.js";
+import authRouter from "./routes/authRoutes.js";
+import downloadRouter from "./routes/downloadRoutes.js";
+import userRouter from "./routes/userRoutes.js";
+import courseRouter from "./routes/courseRoutes.js";
+import lectureRouter from "./routes/lectureRoutes.js";
+import enrollmentRouter from "./routes/enrollmentRoutes.js";
+import adminRouter from "./routes/adminRoutes.js";
+import path from "path";
+
+// Security and Error Handling
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import { errorHandler } from "./middleware/errorHandler.js";
+
+const app = express();
+const port = process.env.PORT || 4000;
+
+connectDB();
+
+const allowedOrigins = ['http://localhost:5173']
+
+app.use(express.json());
+app.use(cookieParser());
+app.use(cors({ origin: allowedOrigins, credentials: true }));
+
+// Security Middlewares
+app.use(helmet({ crossOriginResourcePolicy: false }));
+
+// Rate Limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000, 
+  message: "Too many requests from this IP"
+});
+app.use("/api", apiLimiter);
+
+// Routes
+app.get("/", (req, res) => res.send("API Working"));
+
+app.use("/api/auth", authRouter);
+app.use("/api/user", userRouter);
+app.use("/api/course", courseRouter);
+app.use("/api/lecture", lectureRouter);
+app.use("/api/enrollment", enrollmentRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/downloads", downloadRouter);
+
+app.use("/uploads", express.static("uploads"));
+
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: `Route not found: ${req.method} ${req.url}` });
+});
+
+// Global Error Handler
+app.use(errorHandler);
+
+app.listen(port, () => {
+  console.log(`Server started on PORT: ${port}`);
+  console.log("GitHub OAuth routes ready at /api/auth/github");
+});
