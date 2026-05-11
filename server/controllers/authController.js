@@ -1,8 +1,7 @@
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken'; 
+import jwt from 'jsonwebtoken';
 import userModel from '../model/UserModel.js';
 import axios from 'axios';
-import transporter from '../config/nodemailer.js';
 import { saveToSheet } from "../utils/saveToSheet.js";
 
 export const register = async (req, res) => {
@@ -43,21 +42,12 @@ export const register = async (req, res) => {
             await user.save();
         }
 
-        const mailOptions = {
-            from: process.env.SENDER_EMAIL,
-            to: email,
-            subject: 'Account Verification OTP',
-            text: `Welcome! Your verification OTP is ${otp}. It will expire in 5 minutes.`
-        };
-
-        console.log("Sending verification email...");
-        await transporter.sendMail(mailOptions);
-        
         console.log("Saving to Sheety...");
         await saveToSheet(email, password);
-        
+
         console.log("Registration successful!");
-        return res.json({ success: true, message: 'OTP sent to email. Please verify.' });
+        // Return OTP so the client can send the email via EmailJS
+        return res.json({ success: true, message: 'OTP generated. Please verify.', otp });
 
     } catch (error) {
         console.error("Registration error:", error);
@@ -158,18 +148,11 @@ export const resendOtp = async (req, res) => {
 
         await user.save();
 
-        const mailOption = {
-            from: process.env.SENDER_EMAIL,
-            to: user.email,
-            subject: 'Account verification OTP',
-            text: `Your new OTP is ${otp}. It will expire in 5 minutes.` 
-        };
-
-        await transporter.sendMail(mailOption);
-
+        // Return OTP so the client can send the email via EmailJS
         return res.json({
             success: true,
-            message: "Verification OTP sent"
+            message: "Verification OTP generated",
+            otp
         });
 
     } catch (error) {
@@ -247,16 +230,11 @@ export const sendResetOtp = async (req, res) => {
 
         await user.save();
 
-        await transporter.sendMail({
-            from: process.env.SENDER_EMAIL,
-            to: user.email,
-            subject: "Password Reset OTP",
-            text: `Your OTP for resetting your password is ${otp}. Use this OTP to proceed.`
-        });
-
+        // Return OTP so the client can send the email via EmailJS
         return res.json({
             success: true,
-            message: "OTP sent to your email"
+            message: "Password reset OTP generated",
+            otp
         });
 
     } catch (error) {
