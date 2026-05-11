@@ -24,7 +24,13 @@ const port = process.env.PORT || 4000;
 
 connectDB();
 
-const allowedOrigins = ['http://localhost:5173']
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://learn-hub-5fee5.web.app',
+  'https://learn-hub-5fee5.firebaseapp.com',
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
 
 app.use(express.json());
 app.use(cookieParser());
