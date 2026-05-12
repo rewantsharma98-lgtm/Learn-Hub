@@ -287,8 +287,46 @@ export const deleteLecture = async (req, res) => {
 // ─── Get All Users ────────────────────────────────────────────────────────────
 export const getAllUsersAdmin = async (req, res, next) => {
   try {
-    const users = await UserModel.find().select("-password").sort({ createdAt: -1 });
-    res.json({ success: true, users });
+    const users = await UserModel.find().sort({ createdAt: -1 });
+    
+    // Fetch enrollments for each user
+    const usersWithEnrollments = await Promise.all(users.map(async (user) => {
+      const enrollments = await EnrollmentModel.find({ user: user._id })
+        .populate("course", "title");
+      
+      const userData = user.toObject();
+      userData.enrolledCourses = enrollments.map(e => e.course?.title || "Unknown Course");
+      return userData;
+    }));
+
+    res.json({ success: true, users: usersWithEnrollments });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── Delete User ──────────────────────────────────────────────────────────────
+export const deleteUserAdmin = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    const user = await UserModel.findById(id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (user.role === "admin") {
+      return res.status(403).json({ success: false, message: "Cannot delete an admin user" });
+    }
+
+    // Delete user's enrollments and progress
+    await EnrollmentModel.deleteMany({ user: id });
+    // Add progress deletion if you have a progress model
+    // await ProgressModel.deleteMany({ user: id });
+
+    await UserModel.findByIdAndDelete(id);
+
+    res.json({ success: true, message: "User deleted successfully" });
   } catch (error) {
     next(error);
   }

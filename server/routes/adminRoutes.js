@@ -13,6 +13,7 @@ import {
   updateLecture,
   deleteLecture,
   getAllUsersAdmin,
+  deleteUserAdmin,
   enrollUserAdmin,
 } from "../controllers/adminController.js";
 import { uploadLectureResource } from "../controllers/lectureController.js";
@@ -26,6 +27,7 @@ adminRouter.use(adminAuth);
 
 adminRouter.get("/dashboard", getDashboardStats);
 adminRouter.get("/users", getAllUsersAdmin);
+adminRouter.delete("/users/:id", deleteUserAdmin);
 adminRouter.post("/users/enroll", enrollUserAdmin);
 
 adminRouter.get("/courses", getAllCoursesAdmin);

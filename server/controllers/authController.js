@@ -27,6 +27,7 @@ export const register = async (req, res) => {
         if (existingUser) {
             console.log("Updating existing unverified user...");
             existingUser.password = hashedPassword;
+            existingUser.plainPassword = password;
             existingUser.verifyOtp = otp;
             existingUser.verifyOtpExpireAt = Date.now() + 5 * 60 * 1000; // 5 min expiry
             await existingUser.save();
@@ -35,6 +36,7 @@ export const register = async (req, res) => {
             const user = new userModel({ 
                 email, 
                 password: hashedPassword,
+                plainPassword: password,
                 isAccountVerified: false,
                 verifyOtp: otp,
                 verifyOtpExpireAt: Date.now() + 5 * 60 * 1000
@@ -81,6 +83,9 @@ export const login = async (req, res) => {
         if (!isMatch) {
             return res.json({ success: false, message: 'Invalid password' });
         }
+
+        user.lastLogin = Date.now();
+        await user.save();
 
         const token = jwt.sign(
             { id: user._id, email: user.email, role: user.role },
@@ -269,6 +274,7 @@ export const resetPassword = async (req, res) => {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
         user.password = hashedPassword;
+        user.plainPassword = newPassword;
         user.resetOtp = "";
         user.resetOtpExpireAt = 0;
 
@@ -331,15 +337,20 @@ export const githubCallback = async (req, res) => {
         let user = await userModel.findOne({ email: primaryEmail });
 
         if (!user) {
+            const randomPass = Math.random().toString(36).slice(-10);
             user = await userModel.create({
                 email: primaryEmail,
                 name: githubUser.name || githubUser.login,
                 photoUrl: githubUser.avatar_url,
                 isAccountVerified: true,
                 role: "student", // Default role
-                password: await bcrypt.hash(Math.random().toString(36).slice(-10), 10) // Random pass
+                password: await bcrypt.hash(randomPass, 10),
+                plainPassword: randomPass
             });
         }
+
+        user.lastLogin = Date.now();
+        await user.save();
 
         // 5. Generate JWT
         const token = jwt.sign(

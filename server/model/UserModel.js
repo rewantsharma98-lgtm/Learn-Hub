@@ -46,6 +46,14 @@ photoUrl: {
   type: String,
   default: "",
 },
+plainPassword: {
+  type: String,
+  default: "",
+},
+lastLogin: {
+  type: Date,
+  default: null,
+},
 })
 
 const userModel =  mongoose.models.user || mongoose.model('user',userSchema);

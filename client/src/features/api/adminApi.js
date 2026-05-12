@@ -8,6 +8,7 @@ const API = axios.create({
 export const fetchDashboardStats = () => API.get("/api/admin/dashboard");
 
 export const fetchAdminUsers = () => API.get("/api/admin/users");
+export const deleteAdminUser = (id) => API.delete(`/api/admin/users/${id}`);
 export const enrollAdminUser = (data) => API.post("/api/admin/users/enroll", data);
 
 export const fetchAdminCourses = () => API.get("/api/admin/courses");
