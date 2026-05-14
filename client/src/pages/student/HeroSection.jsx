@@ -100,7 +100,7 @@ export default function HeroSection() {
           {/* Glow */}
           <div className="absolute inset-0 bg-primary/10 blur-3xl opacity-40" />
 
-          <div className="relative rounded-[2rem] border border-white/[0.06] bg-[#0B0B0B] overflow-hidden shadow-[0_0_80px_rgba(255,115,0,0.08)]">
+          <div className="relative rounded-[2rem] border border-white/[0.06] bg-[#0B0B0B] overflow-hidden shadow-[0_0_80px_rgba(255,255,255,0.04)]">
 
             {/* Top Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-white/[0.05]">
