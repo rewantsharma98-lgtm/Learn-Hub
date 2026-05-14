@@ -30,6 +30,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'https://learn-hub-5fee5.web.app',
   'https://learn-hub-5fee5.firebaseapp.com',
+  'https://learnhub.rewantsharma.online',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
