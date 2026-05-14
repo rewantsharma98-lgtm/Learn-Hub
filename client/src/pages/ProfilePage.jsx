@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Camera, ArrowLeft } from "lucide-react";
 import { userLoggedIn } from "@/features/authSlice";
 import { toast } from "sonner";
+import { ArrowLeft, User as UserIcon, Lock, Bell, ShieldCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function ProfilePage() {
   const user = useSelector((state) => state.auth.user);
@@ -22,11 +23,8 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // 🔁 When backend is ready, replace this with your API call:
-      // await updateProfile({ name, bio }).unwrap();
-      // For now update Redux directly
       dispatch(userLoggedIn({ user: { ...user, name, bio } }));
-      toast.success("Profile updated!");
+      toast.success("Profile updated");
     } catch {
       toast.error("Failed to update profile");
     } finally {
@@ -40,90 +38,119 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background px-6 py-16">
-      <div className="max-w-xl mx-auto">
+    <div className="min-h-screen bg-[#0A0A0A] pt-24 pb-24 px-6 lg:px-8 relative">
+      <div className="absolute inset-0 subtle-noise" />
 
-        {/* back */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-muted-foreground hover:text-white text-xs font-black uppercase tracking-widest mb-10 transition-colors group"
-        >
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back
-        </button>
-
-        <h1 className="text-white text-3xl font-black tracking-tight mb-10">Edit Profile</h1>
-
-        {/* avatar */}
-        <div className="flex flex-col items-center mb-12">
-          <div className="relative">
-            <div className="h-28 w-28 rounded-full ring-4 ring-primary/20 overflow-hidden bg-primary flex items-center justify-center shadow-2xl">
-              {photoUrl ? (
-                <img
-                  src={photoUrl}
-                  alt={name}
-                  referrerPolicy="no-referrer"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-white text-3xl font-black uppercase">{initials}</span>
-              )}
-            </div>
-            {/* camera icon */}
-            <button className="absolute bottom-1 right-1 h-8 w-8 rounded-full bg-primary flex items-center justify-center border-4 border-background hover:bg-primary/90 transition-all shadow-lg">
-              <Camera size={14} className="text-white" />
-            </button>
-          </div>
-          <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mt-4">
-            Profile photo synced from Google
-          </p>
+      <div className="max-w-[1000px] mx-auto relative z-10">
+        
+        {/* Header Section */}
+        <div className="mb-12 border-b border-white/[0.05] pb-8">
+           <button
+             onClick={() => navigate(-1)}
+             className="flex items-center gap-2 text-white/40 hover:text-white text-xs font-medium transition-colors mb-6"
+           >
+             <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+           </button>
+           <h1 className="text-3xl font-semibold text-white tracking-tight mb-2">
+              Settings
+           </h1>
+           <p className="text-sm text-white/50">
+             Manage your account settings and preferences.
+           </p>
         </div>
 
-        {/* form */}
-        <div className="bg-card rounded-2xl border border-border p-8 space-y-6 shadow-xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+           
+           {/* Sidebar Navigation */}
+           <div className="lg:col-span-3 space-y-1">
+              <NavTab icon={<UserIcon className="w-4 h-4" />} label="General" active />
+              <NavTab icon={<Lock className="w-4 h-4" />} label="Security" />
+              <NavTab icon={<Bell className="w-4 h-4" />} label="Notifications" />
+           </div>
 
-          {/* email — read only */}
-          <div>
-            <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-2 block">Email Address</label>
-            <input
-              value={user.email || ""}
-              readOnly
-              className="w-full bg-muted/50 border border-border rounded-lg px-4 py-3 text-muted-foreground text-sm outline-none cursor-not-allowed font-medium"
-            />
-            <p className="text-muted-foreground/40 text-[9px] font-bold uppercase mt-2 tracking-tighter">Email address cannot be changed</p>
-          </div>
+           {/* Main Content Area */}
+           <div className="lg:col-span-9 space-y-8">
+              
+              <div className="bg-[#0F0F0F] border border-white/10 rounded-xl p-8">
+                 <h2 className="text-lg font-medium text-white mb-6">Profile Information</h2>
+                 
+                 <div className="flex items-center gap-6 mb-8">
+                    <div className="h-20 w-20 rounded-full bg-[#1A1A1A] border border-white/10 flex items-center justify-center text-white text-xl font-medium overflow-hidden">
+                       {photoUrl ? (
+                          <img src={photoUrl} className="w-full h-full object-cover" alt="" />
+                       ) : initials}
+                    </div>
+                    <div>
+                       <button className="h-8 px-3 rounded-md bg-[#1A1A1A] hover:bg-[#222222] border border-white/10 text-xs font-medium text-white transition-colors">
+                          Change avatar
+                       </button>
+                    </div>
+                 </div>
 
-          {/* name */}
-          <div>
-            <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-2 block">Full Name</label>
-            <input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your full name"
-              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-primary transition-all font-medium"
-            />
-          </div>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div className="space-y-2">
+                       <label className="text-xs font-medium text-white/70">Full Name</label>
+                       <input
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          className="w-full h-10 bg-[#0A0A0A] border border-white/10 rounded-md px-3 text-sm text-white focus:outline-none focus:border-white/30 transition-colors"
+                          placeholder="Your full name"
+                       />
+                    </div>
 
-          {/* bio */}
-          <div>
-            <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-2 block">Personal Bio</label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Tell us a little about yourself..."
-              rows={4}
-              className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-primary transition-all resize-none font-medium leading-relaxed"
-            />
-          </div>
+                    <div className="space-y-2">
+                       <label className="text-xs font-medium text-white/70">Email Address</label>
+                       <input
+                          value={user.email}
+                          disabled
+                          className="w-full h-10 bg-[#0A0A0A] border border-white/5 rounded-md px-3 text-sm text-white/30 cursor-not-allowed"
+                       />
+                    </div>
+                 </div>
 
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full py-3.5 rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50 text-white text-xs font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-primary/10 mt-4"
-          >
-            {saving ? "Saving Changes..." : "Update Profile"}
-          </button>
+                 <div className="space-y-2 mb-8">
+                    <label className="text-xs font-medium text-white/70">Bio</label>
+                    <textarea
+                       value={bio}
+                       onChange={(e) => setBio(e.target.value)}
+                       className="w-full bg-[#0A0A0A] border border-white/10 rounded-md p-3 text-sm text-white h-24 resize-none focus:outline-none focus:border-white/30 transition-colors"
+                       placeholder="Tell us a little about yourself..."
+                    />
+                 </div>
+
+                 <div className="flex justify-between items-center pt-6 border-t border-white/5">
+                    <div className="flex items-center gap-2 text-xs text-white/40">
+                       <ShieldCheck className="w-4 h-4 text-primary" />
+                       Your data is secure
+                    </div>
+                    <button
+                       onClick={handleSave}
+                       disabled={saving}
+                       className="h-9 px-4 rounded-md bg-white text-black text-xs font-medium hover:bg-white/90 transition-colors disabled:opacity-50"
+                    >
+                       {saving ? "Saving..." : "Save changes"}
+                    </button>
+                 </div>
+              </div>
+
+           </div>
         </div>
+
       </div>
     </div>
   );
+}
+
+function NavTab({ icon, label, active }) {
+   return (
+      <button className={cn(
+         "w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-left",
+         active 
+            ? "bg-[#1A1A1A] text-white" 
+            : "text-white/50 hover:bg-white/5 hover:text-white"
+      )}>
+         {icon}
+         <span className="text-sm font-medium">{label}</span>
+      </button>
+   );
 }

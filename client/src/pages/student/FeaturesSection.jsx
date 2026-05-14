@@ -1,106 +1,110 @@
-import { 
-  Zap, 
-  ShieldCheck, 
-  BarChart3, 
-  Users2, 
-  Globe2, 
-  Cpu,
-  GraduationCap,
-  Sparkles
+import {
+  PlayCircle,
+  BookOpen,
+  Brain,
+  Trophy,
 } from "lucide-react";
 
+const FEATURES = [
+  {
+    icon: BookOpen,
+    title: "Unit-wise Prep",
+    desc: "Organized lectures, hand-written notes and previous papers."
+  },
+  {
+    icon: Brain,
+    title: "PYQ Database",
+    desc: "Access last 5 years question papers for every subject."
+  },
+  {
+    icon: Trophy,
+    title: "Backlog Buster",
+    desc: "Stay consistent and clear all subjects in first attempt."
+  }
+];
+
 export default function FeaturesSection() {
-  const features = [
-    {
-      title: "Smart Learning Path",
-      desc: "Our AI-driven algorithm suggests the best courses and units based on your academic goals.",
-      icon: <Zap className="text-orange-500" />,
-      color: "from-orange-500/20 to-transparent"
-    },
-    {
-      title: "Certified Curriculum",
-      desc: "Syllabus-compliant modules designed by top-tier academic experts and industry veterans.",
-      icon: <ShieldCheck className="text-blue-500" />,
-      color: "from-blue-500/20 to-transparent"
-    },
-    {
-      title: "Real-time Analytics",
-      desc: "Track your progress with granular detail, from lecture completion to self-assessment scores.",
-      icon: <BarChart3 className="text-emerald-500" />,
-      color: "from-emerald-500/20 to-transparent"
-    },
-    {
-      title: "Global Community",
-      desc: "Connect with thousands of fellow students across 120+ countries for peer-to-peer learning.",
-      icon: <Users2 className="text-purple-500" />,
-      color: "from-purple-500/20 to-transparent"
-    }
-  ];
-
-  const stats = [
-    { label: "Active Learners", value: "85K+", sub: "Enrolled this semester" },
-    { label: "Expert Mentors", value: "450+", sub: "Verified educators" },
-    { label: "Success Rate", value: "94%", sub: "Career advancement" },
-    { label: "Resources", value: "12K+", sub: "Premium study materials" }
-  ];
-
   return (
-    <section className="bg-[#0a0a0a] py-32 px-6 overflow-hidden relative">
-      {/* Background Glows */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
-      
-      <div className="max-w-7xl mx-auto relative z-10">
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center mb-32">
-          <div>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-[2px] bg-primary rounded-full" />
-              <span className="text-primary text-[10px] font-black uppercase tracking-[0.3em]">The Marshall Edge</span>
+    <section className="px-4 sm:px-6 py-16 md:py-24">
+
+      <div className="max-w-[1250px] mx-auto">
+
+        <div className="max-w-2xl mb-14">
+
+          <p className="text-primary text-[10px] uppercase tracking-[0.3em] font-semibold mb-4">
+            Features
+          </p>
+
+          <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white leading-[1]">
+            Everything you need
+            <span className="text-white/30">
+              {" "}to clear your Diploma.
+            </span>
+          </h2>
+
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-6 items-center">
+
+          {/* LEFT */}
+          <div className="rounded-[30px] border border-white/10 bg-[#0F0F0F] p-5 sm:p-8">
+
+            <div className="flex items-center gap-2 mb-8">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">
+                Learning Dashboard
+              </span>
             </div>
-            <h2 className="text-white text-3xl sm:text-5xl md:text-6xl font-black tracking-tight uppercase leading-[1.1] mb-6 md:mb-8">
-              Advanced <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40">Infrastructure</span> <br/>
-              for Modern Education.
-            </h2>
-            <p className="text-muted-foreground text-base md:text-lg font-medium leading-relaxed max-w-xl">
-              We've built more than just a course platform. MarshallLMS is a comprehensive ecosystem designed to optimize every aspect of your academic journey.
-            </p>
+
+            <div className="rounded-2xl border border-white/10 bg-[#161616] p-5">
+
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-white font-semibold text-lg">
+                    Applied Mathematics
+                  </h3>
+
+                  <p className="text-white/40 text-sm mt-1">
+                    Semester 1
+                  </p>
+                </div>
+
+                <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <PlayCircle className="text-primary" size={18} />
+                </div>
+              </div>
+
+              <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                <div className="w-[70%] h-full bg-primary rounded-full" />
+              </div>
+
+            </div>
+
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {features.map((f, i) => (
-              <div 
-                key={i}
-                className="group p-8 bg-[#111] border border-white/5 rounded-[2rem] hover:border-white/10 transition-all hover:shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]"
+          {/* RIGHT */}
+          <div className="grid sm:grid-cols-3 lg:grid-cols-1 gap-4">
+
+            {FEATURES.map((item) => (
+              <div
+                key={item.title}
+                className="rounded-3xl border border-white/10 bg-[#101010] p-6"
               >
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${f.color} flex items-center justify-center mb-6 border border-white/5 group-hover:scale-110 transition-transform`}>
-                  {f.icon}
-                </div>
-                <h3 className="text-white text-sm font-black uppercase tracking-widest mb-3">{f.title}</h3>
-                <p className="text-muted-foreground text-xs leading-relaxed font-medium">
-                  {f.desc}
+                <item.icon className="w-5 h-5 text-primary mb-5" />
+
+                <h3 className="text-white font-semibold mb-2">
+                  {item.title}
+                </h3>
+
+                <p className="text-sm text-white/40 leading-relaxed">
+                  {item.desc}
                 </p>
               </div>
             ))}
+
           </div>
-        </div>
 
-        {/* Stats Strip */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-y-12 md:gap-8 py-10 md:py-16 px-6 md:px-12 bg-[#111] border border-white/5 rounded-[2rem] md:rounded-[3rem] shadow-2xl relative overflow-hidden">
-           {/* Glass Effect */}
-           <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
-           
-           {stats.map((s, i) => (
-             <div key={i} className="text-center space-y-1 md:space-y-2 relative z-10">
-               <p className="text-white text-2xl md:text-4xl font-black tracking-tighter uppercase">{s.value}</p>
-               <div className="space-y-1">
-                 <p className="text-primary text-[9px] font-black uppercase tracking-widest">{s.label}</p>
-                 <p className="text-muted-foreground text-[8px] font-bold uppercase opacity-50">{s.sub}</p>
-               </div>
-             </div>
-           ))}
         </div>
-
       </div>
     </section>
   );

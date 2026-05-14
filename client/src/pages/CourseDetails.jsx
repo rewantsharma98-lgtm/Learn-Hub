@@ -1,33 +1,51 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useCourses } from "@/context/CourseContext";
-import { CheckCircle, Clock, BookOpen, LayoutDashboard, FileText } from "lucide-react";
+
+import {
+  ArrowLeft,
+  Play,
+  Clock,
+  BookOpen,
+  ShieldCheck,
+  Layers,
+  ChevronRight,
+} from "lucide-react";
+
 import ProtectedAction from "@/components/ProtectedAction";
-import { useEnrollInCourseMutation, useGetEnrolledCoursesQuery } from "@/features/api/courseApi";
+
+import {
+  useEnrollInCourseMutation,
+  useGetEnrolledCoursesQuery,
+} from "@/features/api/courseApi";
+
 import { toast } from "sonner";
 
 export default function CourseDetails() {
   const { id } = useParams();
+
   const { courses } = useCourses();
+
   const navigate = useNavigate();
 
-  const [enrollInCourse, { isLoading: isEnrolling }] = useEnrollInCourseMutation();
+  const [enrollInCourse, { isLoading: isEnrolling }] =
+    useEnrollInCourseMutation();
+
   const { data: enrolledData } = useGetEnrolledCoursesQuery();
-  
-  const isEnrolled = enrolledData?.courses?.some(c => String(c._id) === id);
+
+  const isEnrolled = enrolledData?.courses?.some(
+    (c) => String(c._id) === id
+  );
 
   const course = courses.find((c) => String(c._id) === id);
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-[#1a1a1a] flex items-center justify-center text-white p-6">
-        <div className="text-center space-y-6 animate-in fade-in zoom-in duration-500">
-          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20">
-            <BookOpen size={40} className="text-primary animate-pulse" />
-          </div>
-          <div className="space-y-2">
-            <h2 className="text-2xl font-black uppercase tracking-tighter">Course Loading</h2>
-            <p className="text-muted-foreground text-xs uppercase font-bold tracking-[0.2em]">Synchronizing with Semester Hub...</p>
-          </div>
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          <span className="text-xs text-white/40">
+            Loading course...
+          </span>
         </div>
       </div>
     );
@@ -38,9 +56,12 @@ export default function CourseDetails() {
       navigate(`/learn/${id}`);
       return;
     }
+
     try {
       await enrollInCourse(id).unwrap();
-      toast.success("Enrolled successfully!");
+
+      toast.success("Successfully enrolled");
+
       navigate(`/learn/${id}`);
     } catch (err) {
       toast.error(err?.data?.message || "Enrollment failed");
@@ -48,120 +69,392 @@ export default function CourseDetails() {
   };
 
   return (
-    <div className="min-h-screen bg-[#1a1a1a] text-white">
+    <section className="min-h-screen bg-[#0A0A0A] pt-20 md:pt-24 pb-16 px-4 sm:px-6 relative overflow-hidden">
 
-      {/* HERO & CONTENT */}
-      <div className="max-w-6xl mx-auto px-4 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          
-          {/* LEFT COLUMN: Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            <img
-              src={course.thumbnail}
-              className="w-full h-auto aspect-video object-cover rounded-xl border border-border shadow-lg"
-              alt={course.title}
-            />
+      {/* BACKGROUND */}
+      <div className="absolute inset-0 subtle-noise opacity-40" />
 
-            <div className="pt-4">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4 leading-tight">{course.title}</h1>
-              <p className="text-muted-foreground text-lg leading-relaxed">{course.description}</p>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 blur-[120px]" />
+
+      <div className="max-w-[1200px] mx-auto relative z-10">
+
+        {/* BACK */}
+        <button
+          onClick={() => navigate("/courses")}
+          className="
+            flex
+            items-center
+            gap-2
+            text-white/40
+            hover:text-white
+            transition-colors
+            text-xs
+            mb-8
+          "
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to courses
+        </button>
+
+        {/* MAIN GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 lg:gap-12">
+
+          {/* LEFT */}
+          <div>
+
+            {/* HERO IMAGE */}
+            <div className="
+              relative
+              aspect-video
+              rounded-3xl
+              overflow-hidden
+              border
+              border-white/[0.06]
+              bg-[#111]
+              mb-8
+            ">
+
+              {course.thumbnail ? (
+                <img
+                  src={course.thumbnail}
+                  alt=""
+                  className="
+                    w-full
+                    h-full
+                    object-cover
+                    opacity-70
+                  "
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <BookOpen className="w-10 h-10 text-white/10" />
+                </div>
+              )}
+
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+
+              <div className="absolute bottom-5 left-5 right-5">
+
+                <div className="flex items-center gap-2 mb-4">
+
+                  <span className="
+                    px-3
+                    py-1
+                    rounded-full
+                    bg-black/40
+                    backdrop-blur-md
+                    border
+                    border-white/10
+                    text-[10px]
+                    text-white/70
+                  ">
+                    {course.category || "Course"}
+                  </span>
+
+                  <span className="text-[11px] text-white/50">
+                    Polytechnic Program
+                  </span>
+
+                </div>
+
+                <h1 className="
+                  text-2xl
+                  sm:text-3xl
+                  md:text-5xl
+                  font-semibold
+                  leading-tight
+                  tracking-tight
+                  text-white
+                  max-w-3xl
+                ">
+                  {course.title}
+                </h1>
+
+              </div>
+
             </div>
-            
-            <div className="flex gap-4">
-               <span className="bg-primary/20 text-primary px-4 py-1.5 rounded-sm font-semibold text-sm">
-                 {course.level}
-               </span>
-               <span className="bg-muted px-4 py-1.5 rounded-sm text-white font-medium text-sm">
-                 {course.category}
-               </span>
-               <span className="bg-muted px-4 py-1.5 rounded-sm text-white font-medium text-sm">
-                 {course.hours} hours
-               </span>
+
+            {/* DESCRIPTION */}
+            <div className="mb-10">
+
+              <p className="
+                text-sm
+                md:text-[15px]
+                leading-7
+                text-white/55
+                max-w-3xl
+              ">
+                {course.description ||
+                  "Structured learning experience designed for polytechnic students with practical curriculum, semester modules, and guided learning."}
+              </p>
+
             </div>
+
+            {/* MOBILE ACTION CARD */}
+            <div className="lg:hidden mb-10">
+
+              <div className="
+                rounded-2xl
+                border
+                border-white/[0.06]
+                bg-[#0F0F0F]
+                p-5
+              ">
+
+                <ProtectedAction>
+                  <button
+                    onClick={handleEnroll}
+                    disabled={isEnrolling}
+                    className="
+                      w-full
+                      h-11
+                      rounded-xl
+                      bg-white
+                      text-black
+                      text-sm
+                      font-medium
+                      hover:bg-white/90
+                      transition-colors
+                    "
+                  >
+                    {isEnrolling
+                      ? "Processing..."
+                      : isEnrolled
+                      ? "Continue Learning"
+                      : "Enroll Now"}
+                  </button>
+                </ProtectedAction>
+
+              </div>
+
+            </div>
+
+            {/* CURRICULUM */}
+            <div>
+
+              <div className="flex items-center justify-between mb-6">
+
+                <div>
+                  <h2 className="text-xl font-semibold text-white">
+                    Curriculum
+                  </h2>
+
+                  <p className="text-sm text-white/40 mt-1">
+                    Semester modules and learning units
+                  </p>
+                </div>
+
+                <div className="
+                  hidden
+                  sm:flex
+                  items-center
+                  gap-2
+                  text-xs
+                  text-white/40
+                ">
+                  <Layers className="w-4 h-4" />
+                  {course.sections?.length || 0} Sections
+                </div>
+
+              </div>
+
+              <div className="
+                rounded-2xl
+                overflow-hidden
+                border
+                border-white/[0.06]
+                bg-[#0F0F0F]
+              ">
+
+                {course.sections?.map((section, idx) => (
+                  <div
+                    key={idx}
+                    className="
+                      flex
+                      items-center
+                      justify-between
+                      gap-4
+                      px-4
+                      md:px-6
+                      py-5
+                      border-b
+                      border-white/[0.04]
+                      hover:bg-white/[0.02]
+                      transition-colors
+                    "
+                  >
+
+                    <div className="flex items-center gap-4">
+
+                      <div className="
+                        w-9
+                        h-9
+                        rounded-xl
+                        bg-white/[0.03]
+                        border
+                        border-white/[0.06]
+                        flex
+                        items-center
+                        justify-center
+                        text-xs
+                        text-white/40
+                      ">
+                        {idx + 1}
+                      </div>
+
+                      <div>
+
+                        <h3 className="
+                          text-sm
+                          md:text-[15px]
+                          font-medium
+                          text-white
+                        ">
+                          {section.title}
+                        </h3>
+
+                        <p className="text-xs text-white/35 mt-1">
+                          {section.lectures?.length || 0} lectures
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <ChevronRight className="w-4 h-4 text-white/20" />
+
+                  </div>
+                ))}
+
+              </div>
+
+            </div>
+
           </div>
 
-          {/* RIGHT SIDEBAR: Pricing & Details */}
-          <div className="bg-card p-6 rounded-xl border border-border sticky top-24 shadow-md">
-            <div className="flex justify-between items-center mb-8">
-              <span className="text-lg font-medium text-white">Price</span>
-              <span className="text-3xl font-bold text-primary">FREE</span>
+          {/* RIGHT SIDEBAR */}
+          <div className="hidden lg:block">
+
+            <div className="
+              sticky
+              top-24
+              rounded-3xl
+              border
+              border-white/[0.06]
+              bg-[#0F0F0F]
+              overflow-hidden
+            ">
+
+              {/* PREVIEW */}
+              <div className="
+                aspect-video
+                relative
+                border-b
+                border-white/[0.05]
+              ">
+
+                {course.thumbnail ? (
+                  <img
+                    src={course.thumbnail}
+                    alt=""
+                    className="
+                      w-full
+                      h-full
+                      object-cover
+                      opacity-70
+                    "
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <BookOpen className="w-8 h-8 text-white/10" />
+                  </div>
+                )}
+
+                <div className="absolute inset-0 bg-black/30" />
+
+                <div className="
+                  absolute
+                  inset-0
+                  flex
+                  items-center
+                  justify-center
+                ">
+
+                  <div className="
+                    w-14
+                    h-14
+                    rounded-full
+                    bg-white/10
+                    backdrop-blur-xl
+                    border
+                    border-white/20
+                    flex
+                    items-center
+                    justify-center
+                  ">
+                    <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* CONTENT */}
+              <div className="p-6">
+
+                <ProtectedAction>
+                  <button
+                    onClick={handleEnroll}
+                    disabled={isEnrolling}
+                    className="
+                      w-full
+                      h-11
+                      rounded-xl
+                      bg-white
+                      text-black
+                      text-sm
+                      font-medium
+                      hover:bg-white/90
+                      transition-colors
+                    "
+                  >
+                    {isEnrolling
+                      ? "Processing..."
+                      : isEnrolled
+                      ? "Continue Learning"
+                      : "Enroll Now"}
+                  </button>
+                </ProtectedAction>
+
+                {/* FEATURES */}
+                <div className="mt-8 space-y-4">
+
+                  <div className="flex items-center gap-3 text-sm text-white/55">
+                    <Clock className="w-4 h-4 text-white/30" />
+                    Self-paced learning
+                  </div>
+
+                  <div className="flex items-center gap-3 text-sm text-white/55">
+                    <Layers className="w-4 h-4 text-white/30" />
+                    {course.sections?.length || 0} curriculum sections
+                  </div>
+
+                  <div className="flex items-center gap-3 text-sm text-white/55">
+                    <ShieldCheck className="w-4 h-4 text-white/30" />
+                    Lifetime access
+                  </div>
+
+                </div>
+
+              </div>
+
             </div>
 
-            <div className="mb-8">
-              <h3 className="font-semibold text-white mb-5 text-sm">What you'll get:</h3>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-4">
-                   <div className="mt-0.5 bg-muted p-2 rounded-md border border-border">
-                     <Clock size={16} className="text-primary" />
-                   </div>
-                   <div>
-                     <p className="text-white text-sm font-medium">Course Duration</p>
-                     <p className="text-muted-foreground text-xs mt-0.5">{course.hours} hours</p>
-                   </div>
-                </li>
-                <li className="flex items-start gap-4">
-                   <div className="mt-0.5 bg-muted p-2 rounded-md border border-border">
-                     <BookOpen size={16} className="text-primary" />
-                   </div>
-                   <div>
-                     <p className="text-white text-sm font-medium">Difficulty Level</p>
-                     <p className="text-muted-foreground text-xs mt-0.5">{course.level}</p>
-                   </div>
-                </li>
-                <li className="flex items-start gap-4">
-                   <div className="mt-0.5 bg-muted p-2 rounded-md border border-border">
-                     <LayoutDashboard size={16} className="text-primary" />
-                   </div>
-                   <div>
-                     <p className="text-white text-sm font-medium">Category</p>
-                     <p className="text-muted-foreground text-xs mt-0.5">{course.category}</p>
-                   </div>
-                </li>
-                <li className="flex items-start gap-4">
-                   <div className="mt-0.5 bg-muted p-2 rounded-md border border-border">
-                     <FileText size={16} className="text-primary" />
-                   </div>
-                   <div>
-                     <p className="text-white text-sm font-medium">Total Lessons</p>
-                     <p className="text-muted-foreground text-xs mt-0.5">{course.lectures?.length || 0} lessons</p>
-                   </div>
-                </li>
-              </ul>
-            </div>
-
-            <div className="mb-8">
-              <h3 className="font-semibold text-white mb-4 text-sm">This course includes:</h3>
-              <ul className="space-y-3">
-                <li className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <CheckCircle size={16} className="text-green-500 shrink-0" />
-                  Full lifetime access
-                </li>
-                <li className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <CheckCircle size={16} className="text-green-500 shrink-0" />
-                  Access on mobile and desktop
-                </li>
-                <li className="flex items-center gap-3 text-sm text-muted-foreground">
-                  <CheckCircle size={16} className="text-green-500 shrink-0" />
-                  Certificate of completion
-                </li>
-              </ul>
-            </div>
-
-            <ProtectedAction>
-              <button
-                onClick={handleEnroll}
-                disabled={isEnrolling}
-                className="w-full py-3.5 bg-primary hover:bg-[#c94f28] text-white rounded-md font-semibold transition-colors duration-200 disabled:opacity-50"
-              >
-                {isEnrolling ? "Enrolling..." : isEnrolled ? "Go to Course" : "Enroll Now!"}
-              </button>
-            </ProtectedAction>
-            <p className="text-xs text-muted-foreground mt-4 text-center">
-              30-day money-back guarantee
-            </p>
           </div>
+
         </div>
+
       </div>
-    </div>
+    </section>
   );
 }

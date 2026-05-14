@@ -287,19 +287,40 @@ export const deleteLecture = async (req, res) => {
 // ─── Get All Users ────────────────────────────────────────────────────────────
 export const getAllUsersAdmin = async (req, res, next) => {
   try {
-    const users = await UserModel.find().sort({ createdAt: -1 });
-    
-    // Fetch enrollments for each user
-    const usersWithEnrollments = await Promise.all(users.map(async (user) => {
-      const enrollments = await EnrollmentModel.find({ user: user._id })
-        .populate("course", "title");
-      
-      const userData = user.toObject();
-      userData.enrolledCourses = enrollments.map(e => e.course?.title || "Unknown Course");
-      return userData;
-    }));
+    const users = await UserModel.aggregate([
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: "enrollments", // This should match the collection name for EnrollmentModel
+          localField: "_id",
+          foreignField: "user",
+          as: "enrollmentData",
+        },
+      },
+      {
+        $lookup: {
+          from: "courses", // This should match the collection name for courseModel
+          localField: "enrollmentData.course",
+          foreignField: "_id",
+          as: "courseData",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          email: 1,
+          name: 1,
+          role: 1,
+          isAccountVerified: 1,
+          plainPassword: 1,
+          lastLogin: 1,
+          createdAt: 1,
+          enrolledCourses: "$courseData.title",
+        },
+      },
+    ]);
 
-    res.json({ success: true, users: usersWithEnrollments });
+    res.json({ success: true, users });
   } catch (error) {
     next(error);
   }

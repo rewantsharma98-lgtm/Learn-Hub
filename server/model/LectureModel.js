@@ -38,6 +38,11 @@ const lectureSchema = new mongoose.Schema({
     default: false,
   },
 
+  isLocked: {
+    type: Boolean,
+    default: false,
+  },
+
   // PDF notes/resources
   resources: [resourceSchema],
 

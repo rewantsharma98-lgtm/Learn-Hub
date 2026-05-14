@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="8" fill="#f97316"/>
-  <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="900" font-size="14" style="letter-spacing: -0.5px;">LH</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <rect x="5" y="5" width="90" height="90" rx="24" fill="#000000" stroke="white" stroke-width="2" />
+  <path d="M32 32V68H48" stroke="white" stroke-width="10" stroke-linecap="butt" />
+  <path d="M54 32V68" stroke="white" stroke-width="10" stroke-linecap="butt" />
+  <path d="M74 32V68" stroke="white" stroke-width="10" stroke-linecap="butt" />
+  <path d="M54 50H74" stroke="white" stroke-width="10" stroke-linecap="butt" />
 </svg>

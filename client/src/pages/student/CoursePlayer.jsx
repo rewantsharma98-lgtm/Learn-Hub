@@ -7,125 +7,101 @@ import {
   useGetCourseProgressQuery,
 } from "@/features/api/courseApi";
 
-import { PlayCircle, CheckCircle, ChevronDown, FileText, BookOpen } from "lucide-react";
+import {
+  CheckCircle2,
+  BookOpen,
+  PenTool,
+  ArrowLeft,
+  FileText,
+  Menu,
+  X,
+  Play,
+  Lock,
+} from "lucide-react";
+
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { cn } from "@/lib/utils";
+import samplePdf from "@/pdf/pdf1.pdf";
 
-// ─────────────────────────────────────────────
-// SAFE YOUTUBE EMBED HELPER
-// ─────────────────────────────────────────────
 function extractYouTubeId(url = "") {
   if (!url) return null;
-  // Handle iframe src matches first
-  const iframeMatch = url.match(/src=["'](.*?)["']/);
-  const targetUrl = iframeMatch ? iframeMatch[1] : url;
 
-  const match = targetUrl.match(
+  const idMatch = url.match(
     /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
   );
-  return match ? match[1] : null;
-}
 
-const getSafeEmbedUrl = (videoUrl = "", embedUrl = "") => {
-  const id = extractYouTubeId(videoUrl) || extractYouTubeId(embedUrl);
-  return id ? `https://www.youtube.com/embed/${id}` : null;
-};
+  return idMatch ? idMatch[1] : null;
+}
 
 export default function CoursePlayer() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const { data: courseData, isLoading: courseLoading } =
-    useGetCourseByIdQuery(id, { refetchOnMountOrArgChange: true });
+    useGetCourseByIdQuery(id);
 
   const { data: lecturesData, isLoading: lecturesLoading } =
-    useGetLecturesQuery(id, { refetchOnMountOrArgChange: true });
+    useGetLecturesQuery(id);
 
   const { data: progressData, refetch: refetchProgress } =
-    useGetCourseProgressQuery(id, { refetchOnMountOrArgChange: true });
+    useGetCourseProgressQuery(id);
 
-  const [updateProgress, { isLoading: isUpdating }] =
-    useUpdateLectureProgressMutation();
+  const [updateProgress] = useUpdateLectureProgressMutation();
 
   const course = courseData?.course;
   const lectures = lecturesData?.lectures || [];
   const progress = progressData?.progress || [];
 
   const [currentLecture, setCurrentLecture] = useState(null);
-  const [expandedSections, setExpandedSections] = useState({});
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-
-  const toggleSection = (sectionId) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [sectionId]: !prev[sectionId],
-    }));
-  };
-
-  const currentProgress = progress.find(p => p.lecture === currentLecture?._id);
-  const initialNote = currentProgress?.studentNote || "";
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [personalNote, setPersonalNote] = useState("");
 
   useEffect(() => {
-    setPersonalNote(initialNote);
-  }, [currentLecture, initialNote]);
-
-  // Auto-expand section containing current lecture
-  useEffect(() => {
-    if (currentLecture && course?.sections) {
-      const parentSection = course.sections.find(s => 
-        s.lectures?.some(l => l._id === currentLecture._id)
-      );
-      if (parentSection && !expandedSections[parentSection._id]) {
-        setExpandedSections(prev => ({ ...prev, [parentSection._id]: true }));
-      }
-    }
-  }, [currentLecture, course?.sections]);
-
-  useEffect(() => {
     if (lectures.length > 0 && !currentLecture) {
-      if (progress.length > 0) {
-        const sortedProgress = [...progress].sort(
-          (a, b) => new Date(b.lastWatched) - new Date(a.lastWatched)
-        );
-        const lastLectureId = sortedProgress[0].lecture;
-        const lastLecture = lectures.find((l) => l._id === lastLectureId);
-        if (lastLecture) {
-          setCurrentLecture(lastLecture);
-          return;
-        }
-      }
       setCurrentLecture(lectures[0]);
     }
-  }, [lectures, progress, currentLecture]);
+  }, [lectures, currentLecture]);
+
+  useEffect(() => {
+    const lectureProgress = progress.find(
+      (p) => p.lecture === currentLecture?._id
+    );
+
+    setPersonalNote(lectureProgress?.studentNote || "");
+  }, [currentLecture, progress]);
 
   const isCompleted = (lectureId) =>
     progress.some((p) => p.lecture === lectureId && p.completed);
 
   const handleMarkAsComplete = async () => {
     if (!currentLecture) return;
+
     try {
       await updateProgress({
         courseId: id,
         lectureId: currentLecture._id,
         completed: !isCompleted(currentLecture._id),
       }).unwrap();
+
       refetchProgress();
-      toast.success(isCompleted(currentLecture._id) ? "Marked as incomplete" : "Lesson completed!");
+      toast.success("Progress saved");
     } catch {
-      toast.error("Failed to update progress");
+      toast.error("Failed to save progress");
     }
   };
 
   const handleSaveNote = async () => {
     if (!currentLecture) return;
+
     try {
       await updateProgress({
         courseId: id,
         lectureId: currentLecture._id,
         note: personalNote,
       }).unwrap();
-      toast.success("Personal note saved!");
+
+      toast.success("Note saved");
       refetchProgress();
     } catch {
       toast.error("Failed to save note");
@@ -134,297 +110,340 @@ export default function CoursePlayer() {
 
   if (courseLoading || lecturesLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-[#0a0a0a] text-white">
-        <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full" />
+      <div className="h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-4">
+        <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+        <span className="text-[11px] font-medium text-white/50">
+          Loading workspace...
+        </span>
       </div>
     );
   }
 
   const completedCount = progress.filter((p) => p.completed).length;
-  const progressPercent = lectures.length > 0 ? Math.round((completedCount / lectures.length) * 100) : 0;
+
+  const progressPercent =
+    lectures.length > 0
+      ? Math.round((completedCount / lectures.length) * 100)
+      : 0;
 
   return (
-    <div className="flex flex-col h-screen bg-[#0a0a0a] text-white overflow-hidden font-sans relative">
-      
-      {/* TOP NAV BRANDING */}
-      <div className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-[#0a0a0a] shrink-0">
-        <div className="flex items-center gap-4">
-          <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-500">
-             <PlayCircle size={20} />
-          </div>
-          <span className="text-sm font-black uppercase tracking-widest text-white/90">MarshallLMS</span>
-        </div>
+    <div className="h-screen bg-[#0A0A0A] flex flex-col overflow-hidden text-white relative">
+      <div className="absolute inset-0 subtle-noise" />
+
+      {/* TOPBAR */}
+      <nav className="h-14 border-b border-white/[0.05] bg-[#0A0A0A]/80 backdrop-blur-md px-3 sm:px-4 flex items-center justify-between relative z-50 shrink-0">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
-            className="lg:hidden p-2 text-muted-foreground hover:text-white"
+          <button
+            onClick={() => navigate("/my-courses")}
+            className="w-8 h-8 flex items-center justify-center rounded bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-colors"
           >
-            <BookOpen size={20} />
+            <ArrowLeft className="w-4 h-4" />
           </button>
-          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40">
-             <PlayCircle size={16} />
-          </div>
+
+          <div className="h-4 w-[1px] bg-white/10 hidden sm:block" />
+
+          <span className="text-[11px] md:text-xs font-medium truncate max-w-[140px] sm:max-w-[220px] md:max-w-[400px] text-white/80">
+            {course?.title}
+          </span>
         </div>
-      </div>
 
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* SIDEBAR */}
-        <div className={`
-          fixed lg:relative inset-y-0 left-0 z-40 w-[300px] sm:w-[380px] bg-[#0d0d0d] border-r border-white/5 flex flex-col shrink-0 transition-transform duration-300
-          ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        `}>
-          <div className="p-8 border-b border-white/5 bg-[#111]">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500 shrink-0">
-                <PlayCircle size={28} />
-              </div>
-              <div className="min-w-0">
-                <h2 className="text-sm font-black uppercase tracking-tight leading-tight text-white/90 truncate">{course?.title}</h2>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-1">Development</p>
-              </div>
-            </div>
+        <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
+            <span className="text-[10px] font-medium text-white/50">
+              {progressPercent}% Completed
+            </span>
 
-            <div className="space-y-3 mt-6">
-              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                <span>Progress</span>
-                <span className="text-white/40">{completedCount}/{lectures.length} lessons</span>
-              </div>
-              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-orange-500 transition-all duration-1000 shadow-[0_0_10px_rgba(249,115,22,0.5)]" 
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-              <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest">{progressPercent}% complete</p>
+            <div className="w-24 h-1.5 bg-[#1A1A1A] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-white transition-all duration-500"
+                style={{ width: `${progressPercent}%` }}
+              />
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
-            {(course?.sections || []).map((section, sIdx) => (
-              <div key={section._id || sIdx} className="bg-[#141414] border border-white/5 rounded-2xl overflow-hidden shadow-xl">
-                <button
-                  onClick={() => toggleSection(section._id)}
-                  className={`w-full flex items-center justify-between p-5 hover:bg-white/5 transition-colors ${expandedSections[section._id] ? "border-b border-white/5" : ""}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <ChevronDown 
-                      size={16} 
-                      className={`text-muted-foreground transition-transform duration-300 ${expandedSections[section._id] ? "" : "-rotate-90"}`} 
-                    />
-                    <div className="text-left">
-                      <p className="text-xs font-black uppercase tracking-tight text-white/90">
-                        {sIdx + 1}: {section.title}
-                      </p>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-0.5">
-                        {section.lectures?.length || 0} lessons
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                {expandedSections[section._id] && (
-                  <div className="p-2 space-y-1">
-                    {(section.lectures || []).map((lesson, lIdx) => {
-                      const active = currentLecture?._id === lesson._id;
-                      const completed = isCompleted(lesson._id);
-
-                      return (
-                        <button
-                          key={lesson._id || lIdx}
-                          onClick={() => setCurrentLecture(lesson)}
-                          className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all ${
-                            active ? "bg-orange-500/10 border border-orange-500/20" : "hover:bg-white/5"
-                          }`}
-                        >
-                          <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                            active ? "bg-orange-500 text-white shadow-lg shadow-orange-500/20" : 
-                            completed ? "bg-green-500 text-white" : "text-white/20"
-                          }`}>
-                            {completed ? <CheckCircle size={14} /> : <PlayCircle size={14} />}
-                          </div>
-                          
-                          <div className="text-left min-w-0">
-                            <p className={`text-xs font-bold leading-tight truncate ${active ? "text-orange-500" : "text-white/70"}`}>
-                              {lIdx + 1}. {lesson.title}
-                            </p>
-                            <p className={`text-[9px] font-black uppercase tracking-widest mt-1 ${
-                              active ? "text-orange-500/60" : completed ? "text-green-500/60" : "text-muted-foreground"
-                            }`}>
-                              {active ? "Currently watching" : completed ? "Completed" : "Lecture"}
-                            </p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-1.5 rounded-md text-white/50 hover:text-white hover:bg-white/5 transition-colors lg:hidden"
+          >
+            {sidebarOpen ? (
+              <X className="w-4 h-4" />
+            ) : (
+              <Menu className="w-4 h-4" />
+            )}
+          </button>
         </div>
+      </nav>
 
-        {/* Overlay for mobile sidebar */}
-        {mobileSidebarOpen && (
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
-            onClick={() => setMobileSidebarOpen(false)}
-          />
-        )}
-
-        {/* MAIN CONTENT */}
-        <div className="flex-1 overflow-y-auto bg-[#0a0a0a] custom-scrollbar">
+      <div className="flex flex-1 overflow-hidden relative z-10">
+        {/* MAIN */}
+        <main className="flex-1 overflow-y-auto custom-scrollbar">
           {currentLecture ? (
-            <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000 px-4 sm:px-8 py-4 sm:py-8">
-              {/* VIDEO PLAYER */}
-              <div>
-                <div className="aspect-video bg-black rounded-2xl md:rounded-3xl overflow-hidden shadow-[0_0_50px_-12px_rgba(0,0,0,0.5)] border border-white/5 group">
-                  {getSafeEmbedUrl(currentLecture.videoUrl, currentLecture.videoEmbedUrl) ? (
+            <div className="max-w-[980px] mx-auto p-3 sm:p-5 md:p-8 space-y-6 sm:space-y-8 relative">
+              {currentLecture.isLocked && (
+                <div className="absolute inset-0 z-[60] bg-[#0A0A0A]/95 backdrop-blur-md flex flex-col items-center justify-center text-center p-6 rounded-2xl border border-white/5 mx-3 sm:mx-5 md:mx-8 my-3 sm:my-5 md:my-8">
+                  <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6">
+                    <Lock className="w-8 h-8 text-primary animate-pulse" />
+                  </div>
+                  
+                  <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">
+                    Lecture Updating
+                  </h2>
+                  
+                  <p className="text-sm text-white/50 max-w-[280px] leading-relaxed">
+                    This content is currently being refined by the instructor. Please check back shortly for the latest version.
+                  </p>
+
+                  <div className="mt-8 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    <span className="text-[10px] uppercase tracking-widest font-black text-white/40">
+                      Coming Soon
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* VIDEO */}
+              <div className="space-y-4">
+                <div className="aspect-video rounded-xl bg-[#0F0F0F] border border-white/10 overflow-hidden relative shadow-2xl">
+                  {extractYouTubeId(currentLecture.videoUrl) ? (
                     <iframe
-                      src={getSafeEmbedUrl(currentLecture.videoUrl, currentLecture.videoEmbedUrl)}
+                      src={`https://www.youtube.com/embed/${extractYouTubeId(
+                        currentLecture.videoUrl
+                      )}?rel=0&modestbranding=1`}
                       className="w-full h-full"
                       allowFullScreen
-                      title={currentLecture.title}
                     />
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-white/20 bg-[#111]">
-                      <PlayCircle size={80} strokeWidth={1} className="mb-4 opacity-20" />
-                      <p className="text-[10px] font-black uppercase tracking-[0.4em]">Cinematic Experience</p>
+                    <div className="flex flex-col items-center justify-center h-full text-white/20">
+                      <Play className="w-8 h-8 mb-2 opacity-50" />
+                      <span className="text-[11px] font-medium">
+                        Video not available
+                      </span>
                     </div>
                   )}
                 </div>
+
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-semibold tracking-tight leading-tight">
+                      {currentLecture.title}
+                    </h2>
+                  </div>
+
+                  <button
+                    onClick={handleMarkAsComplete}
+                    className={cn(
+                      "h-8 sm:h-9 px-3 sm:px-4 rounded-md text-[11px] sm:text-xs font-medium transition-colors flex items-center gap-2",
+                      isCompleted(currentLecture._id)
+                        ? "bg-green-500/10 text-green-500 border border-green-500/20 hover:bg-green-500/20"
+                        : "bg-white text-black hover:bg-white/90"
+                    )}
+                  >
+                    {isCompleted(currentLecture._id) && (
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                    )}
+
+                    {isCompleted(currentLecture._id)
+                      ? "Completed"
+                      : "Mark complete"}
+                  </button>
+                </div>
               </div>
 
-              {/* CONTENT AREA */}
-              <div className="py-8 md:py-12 max-w-6xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-8 mb-12 border-b border-white/5 pb-12">
-                  <div className="min-w-0">
-                    <button
-                      onClick={handleMarkAsComplete}
-                      disabled={isUpdating}
-                      className={`flex items-center gap-3 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all mb-8 ${
-                        isCompleted(currentLecture._id) 
-                        ? "bg-green-500/10 text-green-500 border border-green-500/20" 
-                        : "bg-white/5 text-white/50 border border-white/10 hover:border-white/20 hover:text-white"
-                      }`}
-                    >
-                      {isCompleted(currentLecture._id) ? <CheckCircle size={14} /> : <div className="w-3.5 h-3.5 rounded-full border-2 border-current/20 border-t-current animate-spin hidden group-disabled:block" />}
-                      {isCompleted(currentLecture._id) ? "Mark as Complete" : "Mark as Complete"}
-                    </button>
-
-                    <h1 className="text-2xl md:text-4xl font-black tracking-tight text-white mb-4 leading-tight">
-                      {currentLecture.title}
-                    </h1>
-                    <div className="flex items-center gap-2 text-muted-foreground text-xs font-medium">
-                       <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                       <p>{currentLecture.description || "No description provided for this lesson."}</p>
+              {/* CONTENT */}
+              <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-6 lg:gap-8 pb-12">
+                <div className="space-y-6">
+                  {currentLecture.description && (
+                    <div className="prose prose-invert prose-p:text-white/60 text-[13px] sm:text-sm leading-relaxed max-w-none">
+                      <p>{currentLecture.description}</p>
                     </div>
-                  </div>
+                  )}
+
+                  {currentLecture.notes && (
+                    <div className="space-y-4">
+                      <div className="h-px bg-white/10" />
+
+                      <div className="prose prose-invert prose-headings:text-white prose-p:text-white/60 max-w-none text-[13px] sm:text-sm bg-[#0F0F0F] border border-white/5 p-4 sm:p-6 rounded-xl">
+                        <ReactMarkdown>
+                          {currentLecture.notes}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-                  <div className="lg:col-span-2 space-y-16">
-                    
-                    {/* 📄 RESOURCES */}
-                    {currentLecture.resources?.length > 0 && (
-                      <div className="space-y-8">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
-                            <PlayCircle size={20} />
-                          </div>
-                          <h3 className="text-xs font-black uppercase tracking-widest text-white/90">Lecture Materials</h3>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                          {currentLecture.resources.map((res, i) => (
-                            <a
-                              key={i}
-                              href={res.fileUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="flex items-center gap-5 p-6 bg-[#111] border border-white/5 rounded-2xl hover:border-orange-500/50 hover:shadow-[0_0_30px_-12px_rgba(249,115,22,0.1)] transition-all group"
-                            >
-                              <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-white/20 group-hover:text-orange-500 transition-colors">
-                                <FileText size={24} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold text-white/90 truncate">{res.title}</p>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mt-1">Download PDF</p>
-                              </div>
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                {/* RIGHT TOOLS */}
+                <div className="space-y-6">
+                  {/* NOTES */}
+                  <div className="bg-[#0F0F0F] border border-white/10 rounded-xl p-4 sm:p-5 space-y-4">
+                    <div className="flex items-center gap-2 text-white/80">
+                      <PenTool className="w-4 h-4" />
 
-                    {/* 📝 OVERVIEW */}
-                    {currentLecture.notes && (
-                      <div className="space-y-8">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
-                            <PlayCircle size={20} />
-                          </div>
-                          <h3 className="text-xs font-black uppercase tracking-widest text-white/90">Detailed Overview</h3>
-                        </div>
-                        <div className="prose prose-invert max-w-none text-white/50 leading-loose text-sm bg-[#111] p-6 md:p-10 rounded-2xl md:rounded-[2.5rem] border border-white/5 shadow-2xl">
-                          <ReactMarkdown>{currentLecture.notes}</ReactMarkdown>
-                        </div>
-                      </div>
-                    )}
+                      <span className="text-xs sm:text-sm font-medium">
+                        Personal Notes
+                      </span>
+                    </div>
+
+                    <textarea
+                      value={personalNote}
+                      onChange={(e) => setPersonalNote(e.target.value)}
+                      placeholder="Jot down important points..."
+                      className="w-full bg-[#1A1A1A] border border-white/10 rounded-md p-3 text-[11px] sm:text-xs text-white/80 placeholder:text-white/30 h-36 sm:h-40 resize-none focus:outline-none focus:border-white/30 transition-colors"
+                    />
+
+                    <button
+                      onClick={handleSaveNote}
+                      className="w-full h-8 bg-[#2A2A2A] hover:bg-[#333333] border border-white/5 text-white text-[11px] sm:text-xs font-medium rounded-md transition-colors"
+                    >
+                      Save notes
+                    </button>
                   </div>
 
-                  {/* ✍️ PRIVATE NOTES */}
-                  <div className="space-y-8">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
-                        <PlayCircle size={20} />
+
+                  {/* RESOURCES */}
+                  {currentLecture.resources?.length > 0 && (
+                    <div className="bg-[#0F0F0F] border border-white/10 rounded-xl p-4 sm:p-5 space-y-4">
+
+                      <span className="text-xs sm:text-sm font-medium text-white/80">
+                        Resources
+                      </span>
+
+                      <div className="space-y-2">
+
+                        {currentLecture.resources.map((res, idx) => (
+
+                           <a
+                             key={idx}
+                             href={samplePdf}
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             download="pdf1.pdf"
+                             className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group"
+                           >
+                             <span className="text-[11px] sm:text-xs font-medium text-white/70 truncate">
+                               {res.title || "Lecture Notes (PDF)"}
+                             </span>
+                             <FileText className="w-4 h-4 text-white/40 group-hover:text-primary transition-colors flex-shrink-0" />
+                           </a>
+                        ))}
                       </div>
-                      <h3 className="text-xs font-black uppercase tracking-widest text-white/90">My Private Notes</h3>
                     </div>
-                    
-                    <div className="bg-[#111] border border-white/5 rounded-2xl md:rounded-[2.5rem] p-6 md:p-8 shadow-2xl">
-                      <textarea
-                        value={personalNote}
-                        onChange={(e) => setPersonalNote(e.target.value)}
-                        placeholder="Save your thoughts here..."
-                        rows={6}
-                        className="w-full bg-black/20 border border-white/5 rounded-2xl p-4 md:p-6 text-sm text-white/70 placeholder:text-white/10 resize-none focus:outline-none focus:border-orange-500/50 transition-colors"
-                      />
-                      <button
-                        onClick={handleSaveNote}
-                        disabled={isUpdating}
-                        className="w-full mt-6 py-5 bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl transition-all disabled:opacity-50 shadow-lg shadow-orange-500/20"
-                      >
-                        Sync Note
-                      </button>
+                  )}
+                  {/* PREVIOUS YEAR PAPERS */}
+                  <div className="bg-[#0F0F0F] border border-white/10 rounded-xl p-4 sm:p-5 space-y-4">
+                    <span className="text-xs sm:text-sm font-medium text-white/80">
+                      Previous Year Question Papers
+                    </span>
+                    <div className="space-y-2">
+                       <a
+                         href={samplePdf}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         download="PYQ_Sample.pdf"
+                         className="flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group"
+                       >
+                         <span className="text-[11px] sm:text-xs font-medium text-white/70 truncate">
+                           Latest Previous Year Paper (PDF)
+                         </span>
+                         <FileText className="w-4 h-4 text-white/40 group-hover:text-primary transition-colors flex-shrink-0" />
+                       </a>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-white/5 space-y-6">
-              <PlayCircle size={150} strokeWidth={0.5} />
-              <p className="text-sm font-black uppercase tracking-[0.5em]">MarshallLMS</p>
+            <div className="h-full flex flex-col items-center justify-center text-white/30 space-y-4">
+              <BookOpen className="w-10 h-10 opacity-50" />
+
+              <span className="text-sm font-medium">
+                Select a module to begin
+              </span>
             </div>
           )}
-        </div>
-      </div>
+        </main>
 
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.05);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
-      `}</style>
+        {/* SIDEBAR */}
+        <aside
+          className={cn(
+            "fixed lg:relative top-14 lg:top-0 right-0 bottom-0 z-40 bg-[#0F0F0F] border-l border-white/[0.05] transition-transform duration-300 overflow-hidden flex flex-col w-[280px] sm:w-[320px]",
+            sidebarOpen
+              ? "translate-x-0"
+              : "translate-x-full lg:translate-x-0"
+          )}
+        >
+          <div className="p-4 border-b border-white/[0.05] flex items-center justify-between">
+            <span className="text-[11px] font-medium text-white/70">
+              Course Modules
+            </span>
+
+            <span className="text-[10px] text-white/40 bg-white/5 px-2 py-0.5 rounded">
+              {completedCount}/{lectures.length}
+            </span>
+          </div>
+
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
+            {course?.sections?.map((section, sIdx) => (
+              <div key={section._id} className="mb-4">
+                <div className="px-3 py-2 text-[9px] sm:text-[10px] font-semibold text-white/40 uppercase tracking-wider">
+                  Section {sIdx + 1}: {section.title}
+                </div>
+
+                <div className="space-y-0.5">
+                  {section.lectures?.map((lecture, lIdx) => {
+                    const active = currentLecture?._id === lecture._id;
+
+                    const completed = isCompleted(lecture._id);
+
+                    return (
+                      <button
+                        key={lecture._id}
+                        onClick={() => {
+                          if (lecture.isLocked) return;
+                          setCurrentLecture(lecture);
+                          if (window.innerWidth < 1024) {
+                            setSidebarOpen(false);
+                          }
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors text-left",
+                          active
+                            ? "bg-[#222222] text-white"
+                            : "hover:bg-[#1A1A1A] text-white/60",
+                          lecture.isLocked && "opacity-40 cursor-not-allowed"
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "w-4 h-4 rounded-full flex flex-shrink-0 items-center justify-center border",
+                            lecture.isLocked
+                              ? "border-white/10 bg-white/5"
+                              : completed
+                                ? "bg-green-500/20 border-green-500/50 text-green-500"
+                                : active
+                                  ? "border-primary text-primary"
+                                  : "border-white/20 text-transparent"
+                          )}
+                        >
+                          {lecture.isLocked ? (
+                            <Lock className="w-2.5 h-2.5" />
+                          ) : completed && (
+                            <CheckCircle2 className="w-2.5 h-2.5" />
+                          )}
+                        </div>
+
+                        <span className="text-[11px] sm:text-xs font-medium line-clamp-2 leading-snug flex-1">
+                          {lIdx + 1}. {lecture.title}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

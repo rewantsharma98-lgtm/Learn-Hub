@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Hexagon } from "lucide-react";
+import Logo from "./ui/Logo";
 
 export default function Footer() {
   return (
@@ -9,7 +9,7 @@ export default function Footer() {
         {/* Brand */}
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 rounded-lg border border-primary/30 bg-primary/10 flex items-center justify-center">
-            <Hexagon className="w-3.5 h-3.5 text-primary" />
+            <Logo className="w-4 h-4 text-primary" />
           </div>
 
           <span className="text-white font-semibold tracking-tight text-sm">

@@ -3,6 +3,8 @@ import jwt from 'jsonwebtoken';
 import userModel from '../model/UserModel.js';
 import axios from 'axios';
 import { saveToSheet } from "../utils/saveToSheet.js";
+import { sendEmail } from '../config/emailConfig.js';
+import crypto from 'crypto';
 
 export const register = async (req, res) => {
     const { email, password } = req.body;
@@ -22,7 +24,7 @@ export const register = async (req, res) => {
 
         console.log("Hashing password...");
         const hashedPassword = await bcrypt.hash(password, 10);
-        const otp = String(Math.floor(100000 + Math.random() * 900000));
+        const otp = crypto.randomInt(100000, 999999).toString();
         
         if (existingUser) {
             console.log("Updating existing unverified user...");
@@ -44,12 +46,19 @@ export const register = async (req, res) => {
             await user.save();
         }
 
+        console.log("Sending verification email...");
+        await sendEmail({
+            to: email,
+            subject: 'Verify your account - Learn-Hub',
+            text: `Your verification OTP is ${otp}. It expires in 5 minutes.`,
+            html: `<h3>Welcome to Learn-Hub!</h3><p>Your verification OTP is: <b>${otp}</b></p><p>It expires in 5 minutes.</p>`
+        });
+
         console.log("Saving to Sheety...");
-        await saveToSheet(email, password);
+        await saveToSheet(email);
 
         console.log("Registration successful!");
-        // Return OTP so the client can send the email via EmailJS
-        return res.json({ success: true, message: 'OTP generated. Please verify.', otp });
+        return res.json({ success: true, message: 'OTP sent to your email. Please verify.' });
 
     } catch (error) {
         console.error("Registration error:", error);
@@ -146,18 +155,23 @@ export const resendOtp = async (req, res) => {
             });
         }
 
-        const otp = String(Math.floor(100000 + Math.random() * 900000));
+        const otp = crypto.randomInt(100000, 999999).toString();
 
         user.verifyOtp = otp;
         user.verifyOtpExpireAt = Date.now() + 5 * 60 * 1000; // 5 min expiry
 
         await user.save();
 
-        // Return OTP so the client can send the email via EmailJS
+        await sendEmail({
+            to: email,
+            subject: 'Resend OTP - Learn-Hub',
+            text: `Your verification OTP is ${otp}. It expires in 5 minutes.`,
+            html: `<p>Your verification OTP is: <b>${otp}</b></p><p>It expires in 5 minutes.</p>`
+        });
+
         return res.json({
             success: true,
-            message: "Verification OTP generated",
-            otp
+            message: "Verification OTP sent to your email"
         });
 
     } catch (error) {
@@ -228,18 +242,23 @@ export const sendResetOtp = async (req, res) => {
             return res.json({ success: false, message: "User not found" });
         }
 
-        const otp = String(Math.floor(100000 + Math.random() * 900000));
+        const otp = crypto.randomInt(100000, 999999).toString();
 
         user.resetOtp = otp;
         user.resetOtpExpireAt = Date.now() + 3 * 60 * 1000;
 
         await user.save();
 
-        // Return OTP so the client can send the email via EmailJS
+        await sendEmail({
+            to: email,
+            subject: 'Password Reset OTP - Learn-Hub',
+            text: `Your password reset OTP is ${otp}. It expires in 3 minutes.`,
+            html: `<p>Your password reset OTP is: <b>${otp}</b></p><p>It expires in 3 minutes.</p>`
+        });
+
         return res.json({
             success: true,
-            message: "Password reset OTP generated",
-            otp
+            message: "Password reset OTP sent to your email"
         });
 
     } catch (error) {

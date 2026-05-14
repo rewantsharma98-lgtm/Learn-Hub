@@ -1,111 +1,142 @@
 import React from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  BookOpen, 
-  BarChart3, 
-  Settings, 
-  LogOut, 
-  ChevronRight,
+import {
+  LayoutDashboard,
+  BookOpen,
+  BarChart3,
+  Settings,
+  LogOut,
   PlusCircle,
   Users,
-  FolderKanban
+  HelpCircle,
 } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 
 const ADMIN_NAV = [
   { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
   { label: "Courses", icon: BookOpen, href: "/admin/courses" },
+  { label: "Students", icon: Users, href: "/admin/team" },
   { label: "Analytics", icon: BarChart3, href: "/admin/analytics" },
-  { label: "Projects", icon: FolderKanban, href: "/admin/projects" },
-  { label: "Team", icon: Users, href: "/admin/team" },
 ];
 
-const BOTTOM_NAV = [
+const SECONDARY_NAV = [
   { label: "Settings", icon: Settings, href: "/admin/settings" },
-  { label: "Get Help", icon: BookOpen, href: "/admin/help" },
+  { label: "Support", icon: HelpCircle, href: "/admin/help" },
 ];
 
 export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const active = (href) => location.pathname === href;
+  const isActive = (href) => location.pathname === href;
 
   return (
-    <div className="flex min-h-screen bg-[#1a1a1a] text-white overflow-hidden">
+    <div className="flex min-h-screen bg-[#0A0A0A] text-white">
+      
       {/* Sidebar */}
-      <aside className="w-64 border-r border-border bg-[#1a1a1a] flex flex-col shrink-0">
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-black text-white text-xs">
-              LH
+      <aside className="w-64 border-r border-white/5 bg-[#0F0F0F] flex flex-col">
+        
+        {/* Logo */}
+        <div className="p-6 border-b border-white/5">
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-3"
+          >
+            <img
+              src="/logo.png"
+              alt="LearnHub"
+              className="w-10 h-10 rounded-xl object-cover"
+            />
+
+            <div className="flex flex-col items-start">
+              <span className="text-white text-lg font-semibold leading-none">
+                LearnHub
+              </span>
+
+              <span className="text-white/40 text-[10px] uppercase tracking-widest mt-1">
+                Admin Panel
+              </span>
             </div>
-            <span className="text-white text-lg font-black tracking-tighter uppercase">
-              learn<span className="text-primary italic">hub</span><span className="text-primary">.</span>
-            </span>
-          </div>
-
-          <button className="w-full flex items-center justify-between px-4 py-2.5 bg-primary rounded-lg text-white font-bold text-xs uppercase tracking-widest hover:bg-primary/90 transition-all mb-8 shadow-lg shadow-primary/20">
-            <span className="flex items-center gap-2">
-              <PlusCircle size={16} /> Quick Create
-            </span>
-            <ChevronRight size={14} className="opacity-50" />
           </button>
-
-          <nav className="space-y-1">
-            {ADMIN_NAV.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => navigate(item.href)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                  active(item.href) 
-                    ? 'bg-primary/10 text-primary border border-primary/20' 
-                    : 'text-muted-foreground hover:text-white hover:bg-white/5 border border-transparent'
-                }`}
-              >
-                <item.icon size={16} className={active(item.href) ? 'text-primary' : 'text-muted-foreground'} />
-                {item.label}
-              </button>
-            ))}
-          </nav>
         </div>
 
-        <div className="mt-auto p-6 space-y-1">
-          {BOTTOM_NAV.map((item) => (
+        {/* Create Course */}
+        <div className="p-6">
+          <button
+            onClick={() => navigate("/admin/courses/new")}
+            className="w-full h-11 rounded-xl bg-white text-black text-sm font-medium hover:bg-white/90 transition-colors flex items-center justify-center gap-2"
+          >
+            <PlusCircle size={16} />
+            Add Course
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <div className="px-4 space-y-1">
+          {ADMIN_NAV.map((item) => (
             <button
               key={item.label}
               onClick={() => navigate(item.href)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white hover:bg-white/5 transition-all"
+              className={cn(
+                "w-full flex items-center gap-3 px-4 h-11 rounded-xl text-sm transition-colors",
+                isActive(item.href)
+                  ? "bg-white/10 text-white"
+                  : "text-white/50 hover:text-white hover:bg-white/5"
+              )}
             >
-              <item.icon size={16} />
+              <item.icon size={18} />
               {item.label}
             </button>
           ))}
-          <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-red-500 hover:bg-red-500/5 transition-all">
-            <LogOut size={16} />
+        </div>
+
+        {/* Bottom */}
+        <div className="mt-auto p-4 border-t border-white/5 space-y-1">
+          
+          {SECONDARY_NAV.map((item) => (
+            <button
+              key={item.label}
+              onClick={() => navigate(item.href)}
+              className="w-full flex items-center gap-3 px-4 h-11 rounded-xl text-sm text-white/50 hover:text-white hover:bg-white/5 transition-colors"
+            >
+              <item.icon size={18} />
+              {item.label}
+            </button>
+          ))}
+
+          <button
+            className="w-full flex items-center gap-3 px-4 h-11 rounded-xl text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            <LogOut size={18} />
             Logout
           </button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <header className="h-16 border-b border-border bg-[#1a1a1a]/80 backdrop-blur-md sticky top-0 z-10 px-8 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-muted-foreground text-xs font-bold uppercase tracking-widest">
-            <LayoutDashboard size={14} />
-            <span>Admin Dashboard</span>
+      {/* Main */}
+      <main className="flex-1 flex flex-col min-h-screen">
+        
+        {/* Topbar */}
+        <header className="h-16 border-b border-white/5 bg-[#0A0A0A]/80 backdrop-blur-md px-8 flex items-center justify-between">
+          
+          <div>
+            <h1 className="text-sm font-medium text-white">
+              Admin Dashboard
+            </h1>
+
+            <p className="text-xs text-white/40">
+              Manage your platform
+            </p>
           </div>
-          <div className="flex items-center gap-4">
-            <button className="p-2 text-muted-foreground hover:text-white transition-colors">
-              <LogOut size={18} />
-            </button>
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-black text-[10px] border border-primary/20">
-              AD
-            </div>
+
+          <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-sm font-medium">
+            AD
           </div>
         </header>
 
-        <div className="p-8">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-8">
           <Outlet />
         </div>
       </main>

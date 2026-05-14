@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ChevronDown, ChevronRight, Plus, Trash2, Pencil,
-  GripVertical, PlayCircle, FileText, Check, X, Loader2, ArrowLeft,
+  GripVertical, PlayCircle, FileText, Check, X, Loader2, ArrowLeft, Lock,
 } from "lucide-react";
 import {
   fetchCourseStructure,
@@ -97,6 +97,7 @@ function LecturePanel({ lecture, sectionId, onUpdate, onDelete }) {
     notes: lecture.notes || "",
     duration: lecture.duration || "",
     isPreviewFree: lecture.isPreviewFree || false,
+    isLocked: lecture.isLocked || false,
   });
   const [saving, setSaving] = useState(false);
   const [videoLoading, setVideoLoading] = useState(true);
@@ -120,6 +121,9 @@ function LecturePanel({ lecture, sectionId, onUpdate, onDelete }) {
         <span className="text-white text-xs font-bold flex-1 truncate">{lecture.title}</span>
         {lecture.isPreviewFree && (
           <span className="text-[9px] font-black px-2 py-0.5 bg-green-500/10 text-green-400 rounded-full uppercase tracking-widest">Free</span>
+        )}
+        {lecture.isLocked && (
+          <span className="text-[9px] font-black px-2 py-0.5 bg-red-500/10 text-red-400 rounded-full uppercase tracking-widest flex items-center gap-1"><Lock size={10} /> Locked</span>
         )}
         <button onClick={() => setOpen((o) => !o)} className="text-muted-foreground hover:text-white transition-colors p-1">
           {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -212,7 +216,7 @@ function LecturePanel({ lecture, sectionId, onUpdate, onDelete }) {
                 className="w-full bg-[#1a1a1a] border border-border rounded-xl px-4 py-2.5 text-white text-xs font-medium outline-none focus:border-primary/50 transition-all"
               />
             </div>
-            <div className="flex items-end pb-1">
+            <div className="flex items-end pb-1 gap-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <div
                   onClick={() => set("isPreviewFree", !form.isPreviewFree)}
@@ -221,6 +225,16 @@ function LecturePanel({ lecture, sectionId, onUpdate, onDelete }) {
                   <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${form.isPreviewFree ? "left-5" : "left-0.5"}`} />
                 </div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Free Preview</span>
+              </label>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <div
+                  onClick={() => set("isLocked", !form.isLocked)}
+                  className={`w-10 h-5 rounded-full transition-colors relative ${form.isLocked ? "bg-red-500" : "bg-muted"}`}
+                >
+                  <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${form.isLocked ? "left-5" : "left-0.5"}`} />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Locked</span>
               </label>
             </div>
           </div>

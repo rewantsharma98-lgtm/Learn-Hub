@@ -2,15 +2,17 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useVerifyEmailMutation, useResendOtpMutation } from "@/features/api/authApi";
-import { ShieldCheck, RotateCcw, ArrowLeft } from "lucide-react";
+import { ShieldCheck, RotateCcw, ArrowLeft, Mail, KeyRound, Fingerprint, Lock } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 export default function VerifyOtp() {
   const location = useLocation();
   const navigate  = useNavigate();
 
-  // Pre-fill email if navigated from Login with state
   const [email, setEmail] = useState(location.state?.email || "");
   const [otp,   setOtp]   = useState("");
+
 
   const [verifyEmail, { isLoading, isSuccess, data: verifyData, error }] =
     useVerifyEmailMutation();
@@ -18,126 +20,120 @@ export default function VerifyOtp() {
   const [resendOtp, { isLoading: isResending, isSuccess: resendOk, error: resendError }] =
     useResendOtpMutation();
 
-  // ── Submit OTP ────────────────────────────────────────────────────────────
   const handleVerify = async (e) => {
     e.preventDefault();
-    if (!email || !otp) return toast.error("Please fill all fields");
+    if (!email || !otp) return toast.error("Credentials required");
     try {
-      const res = await verifyEmail({ email, otp }).unwrap();
-      if (!res.success) toast.error(res.message || "Verification failed");
-    } catch (err) {
-      console.error("Verification error:", err);
-    }
+      await verifyEmail({ email, otp }).unwrap();
+    } catch (_) {}
   };
 
-  // ── Resend OTP ────────────────────────────────────────────────────────────
-  // resendOtp mutation's onQueryStarted in authApi will call sendOtpEmail automatically
   const handleResend = async () => {
-    if (!email) return toast.error("Please enter your email first");
+    if (!email) return toast.error("Identity required");
     try {
       await resendOtp(email).unwrap();
-    } catch (err) {
-      console.error("Resend error:", err);
-    }
+    } catch (_) {}
   };
 
-  // ── Side effects ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (isSuccess && verifyData?.success) {
-      toast.success("Account verified! You can now sign in 🎉");
+      toast.success("Identity verified. Access granted.");
       navigate("/login");
     }
     if (error) toast.error(error?.data?.message || "Verification failed");
   }, [isSuccess, verifyData, error, navigate]);
 
   useEffect(() => {
-    if (resendOk) toast.success("New OTP sent to your email!");
-    if (resendError) toast.error(resendError?.data?.message || "Failed to resend OTP");
+    if (resendOk) toast.success("New security code transmitted.");
+    if (resendError) toast.error(resendError?.data?.message || "Transmission failed");
   }, [resendOk, resendError]);
 
-  // ── UI ────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#1a1a1a] px-6">
-      <div className="bg-card border border-border p-10 rounded-3xl w-full max-w-sm shadow-2xl">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 relative overflow-hidden">
+      {/* Cinematic Background */}
+      <div className="absolute inset-0 noise-bg opacity-[0.02]" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[160px] rounded-full pointer-events-none" />
 
-        {/* Header */}
-        <div className="mb-10 text-center">
-          <div className="w-14 h-14 bg-primary/10 border border-primary/30 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg shadow-primary/10">
-            <ShieldCheck className="w-7 h-7 text-primary" />
-          </div>
-          <h1 className="text-white text-2xl font-black tracking-tight mb-2">
-            Verify Your Email
-          </h1>
-          <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest">
-            Enter the 6-digit code sent to your inbox
-          </p>
-          {email && (
-            <p className="mt-2 text-primary text-xs font-semibold truncate">
-              {email}
-            </p>
-          )}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-[440px] space-y-12 relative z-10"
+      >
+        <div className="text-center space-y-6">
+           <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-[2rem] bg-white/[0.02] border border-white/10 flex items-center justify-center text-primary relative group">
+                 <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                 <Fingerprint size={32} className="relative z-10" />
+              </div>
+           </div>
+           <div className="space-y-2">
+              <h1 className="text-white text-4xl font-bold tracking-tighter">Zero-Trust Access.</h1>
+              <p className="text-white/30 text-sm max-w-[300px] mx-auto">Verify your identity with the security code sent to your academic inbox.</p>
+           </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleVerify} className="space-y-4">
-          <div>
-            <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-1.5 block">
-              Email Address
-            </label>
-            <input
-              type="email"
-              placeholder="name@example.com"
-              required
-              className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl text-white text-sm outline-none focus:border-primary transition-all font-medium"
-              onChange={(e) => setEmail(e.target.value)}
-              value={email}
-            />
-          </div>
+        <form onSubmit={handleVerify} className="space-y-8">
+           <div className="space-y-4">
+              <div className="space-y-2">
+                 <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em] ml-1">Email Node</label>
+                 <div className="relative group">
+                    <Mail size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-primary transition-colors" />
+                    <input
+                       type="email"
+                       value={email}
+                       onChange={(e) => setEmail(e.target.value)}
+                       required
+                       className="w-full bg-white/[0.02] border border-white/5 rounded-2xl py-4 pl-14 pr-4 text-sm text-white/80 focus:outline-none focus:border-primary/50 focus:bg-white/[0.04] transition-all"
+                       placeholder="identity@academy.edu"
+                    />
+                 </div>
+              </div>
 
-          <div>
-            <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest mb-1.5 block">
-              Verification Code
-            </label>
-            <input
-              type="text"
-              placeholder="• • • • • •"
-              required
-              maxLength={6}
-              inputMode="numeric"
-              className="w-full px-4 py-3 bg-muted/30 border border-border rounded-xl text-white text-sm outline-none focus:border-primary transition-all font-black tracking-[0.6em] text-center"
-              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-              value={otp}
-            />
-          </div>
+              <div className="space-y-2">
+                 <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em] ml-1">Security Code</label>
+                 <div className="relative group">
+                    <Lock size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-primary transition-colors" />
+                    <input
+                       type="text"
+                       value={otp}
+                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                       required
+                       maxLength={6}
+                       className="w-full bg-white/[0.02] border border-white/5 rounded-2xl py-5 pl-14 pr-4 text-2xl font-black text-white tracking-[0.8em] focus:outline-none focus:border-primary/50 focus:bg-white/[0.04] transition-all"
+                       placeholder="000000"
+                    />
+                 </div>
+              </div>
+           </div>
 
-          <button
-            type="submit"
-            disabled={isLoading || otp.length < 6}
-            className="w-full bg-white text-black py-3.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] shadow-lg hover:bg-white/90 transition-all mt-4 disabled:opacity-50"
-          >
-            {isLoading ? "Verifying…" : "Verify Account"}
-          </button>
+           <button
+              type="submit"
+              disabled={isLoading || otp.length < 6}
+              className="w-full bg-white text-black py-5 rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl disabled:opacity-30 disabled:hover:scale-100"
+           >
+              {isLoading ? "Authenticating..." : "Establish Connection"}
+           </button>
         </form>
 
-        {/* Resend */}
-        <button
-          onClick={handleResend}
-          disabled={isResending}
-          className="w-full flex items-center justify-center gap-2 text-primary text-[10px] font-black uppercase tracking-widest mt-6 hover:underline disabled:opacity-50 transition-all"
-        >
-          <RotateCcw size={12} className={isResending ? "animate-spin" : ""} />
-          {isResending ? "Sending…" : "Resend OTP"}
-        </button>
+        <div className="flex flex-col gap-6 items-center">
+           <button
+              onClick={handleResend}
+              disabled={isResending}
+              className="text-[9px] font-bold text-white/20 uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-2"
+           >
+              <RotateCcw size={14} className={isResending ? "animate-spin" : ""} />
+              {isResending ? "Transmitting..." : "Resend Security Code"}
+           </button>
 
-        {/* Back */}
-        <button
-          onClick={() => navigate("/login")}
-          className="w-full flex items-center justify-center gap-2 text-muted-foreground text-[10px] font-bold uppercase tracking-widest mt-5 hover:text-white transition-colors"
-        >
-          <ArrowLeft size={12} />
-          Back to Login
-        </button>
-      </div>
+           <button
+              onClick={() => navigate("/")}
+              className="flex items-center gap-2 text-[9px] font-bold text-white/10 uppercase tracking-widest hover:text-white transition-colors"
+           >
+              <ArrowLeft size={14} /> Back to Hub
+           </button>
+        </div>
+      </motion.div>
+
     </div>
   );
 }

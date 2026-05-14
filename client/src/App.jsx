@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/context/AuthContext";
@@ -8,43 +8,81 @@ import { appStore } from "./app/store";
 import { Toaster } from "sonner";
 import { useLoadUserQuery } from "@/features/api/authApi";
 
-import CourseDetails  from "./pages/CourseDetails";
-import Navbar         from "@/components/ui/Navbar";
-import AuthModal      from "@/components/ui/AuthModel";
-import ProtectedRoute from "@/components/ui/ProtectedRoute";
-import LoginPage      from "./pages/Login";
-import Home           from "./pages/Home";
-import Courses        from "./pages/student/Courses";
-import MyCourses      from "./pages/student/MyCourses";
-import AdminCourses   from "./pages/admin/AdminCourses";
-import ProfilePage    from "./pages/ProfilePage";
-import VerifyOtp      from "./pages/VerifyOtp";
-import CoursePlayer   from "./pages/student/CoursePlayer";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import EditCourse     from "./pages/admin/EditCourse";
-import AdminUsers     from "./pages/admin/AdminUsers";
-import AdminLayout    from "./components/layout/AdminLayout";
-import Footer         from "./components/layout/Footer";
+/* ------------------------------
+   Lazy Loaded Pages
+------------------------------ */
 
-// GitHub Auth Redirect Helper (in case user configures port 5173 on GitHub)
-function GithubCallbackRedirect() {
-  useEffect(() => {
-    const code = new URLSearchParams(window.location.search).get("code");
-    if (code) {
-      const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:4000";
-      window.location.href = `${apiUrl}/api/auth/github/callback?code=${code}`;
-    }
-  }, []);
+const Home = lazy(() => import("./pages/Home"));
+const LoginPage = lazy(() => import("./pages/Login"));
+const Courses = lazy(() => import("./pages/student/Courses"));
+const CourseDetails = lazy(() => import("./pages/CourseDetails"));
+const VerifyOtp = lazy(() => import("./pages/VerifyOtp"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const MyCourses = lazy(() => import("./pages/student/MyCourses"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const CoursePlayer = lazy(() => import("./pages/student/CoursePlayer"));
 
+/* Admin */
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminCourses = lazy(() => import("./pages/admin/AdminCourses"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const EditCourse = lazy(() => import("./pages/admin/EditCourse"));
+
+/* Components */
+const Navbar = lazy(() => import("@/components/ui/Navbar"));
+const Footer = lazy(() => import("./components/Footer"));
+const AuthModal = lazy(() => import("@/components/ui/AuthModel"));
+const ProtectedRoute = lazy(() => import("@/components/ui/ProtectedRoute"));
+const AdminLayout = lazy(() => import("./components/layout/AdminLayout"));
+
+/* ------------------------------
+   Premium Loader
+------------------------------ */
+
+function PageLoader() {
   return (
-    <div className="min-h-screen bg-[#1a1a1a] flex items-center justify-center text-white">
-      <div className="text-center space-y-4">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Finalizing Github Secure Handshake...</p>
+    <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="flex flex-col items-center gap-5">
+        
+        <div className="relative">
+          <div className="w-12 h-12 rounded-full border border-white/10" />
+          <div className="absolute inset-0 w-12 h-12 rounded-full border-t-2 border-white animate-spin" />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-white/40 animate-pulse" />
+          <span className="text-[10px] uppercase tracking-[0.3em] text-white/40 font-medium">
+            Loading Workspace
+          </span>
+        </div>
+
       </div>
     </div>
   );
 }
+
+/* ------------------------------
+   GitHub OAuth Redirect
+------------------------------ */
+
+function GithubCallbackRedirect() {
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("code");
+
+    if (code) {
+      const apiUrl =
+        import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+      window.location.href = `${apiUrl}/api/auth/github/callback?code=${code}`;
+    }
+  }, []);
+
+  return <PageLoader />;
+}
+
+/* ------------------------------
+   Routes
+------------------------------ */
 
 function AppRoutes() {
   const { isLoading } = useLoadUserQuery(undefined, {
@@ -52,52 +90,143 @@ function AppRoutes() {
   });
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1a1a1a]">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
-    <Routes>
-      {/* public routes — share Navbar + AuthModal layout */}
-      <Route element={<><Navbar /><AuthModal /><Outlet /><Footer /></>}>
-        <Route path="/"            element={<Home />} />
-        <Route path="/login"       element={<LoginPage />} />
-        <Route path="/courses"     element={<Courses />} />
-        <Route path="/courses/:id" element={<CourseDetails />} />
-        <Route path="/verify-otp"  element={<VerifyOtp />} />
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
 
-        {/* protected student routes */}
-        <Route path="/my-courses" element={<ProtectedRoute><MyCourses /></ProtectedRoute>} />
-        <Route path="/profile"    element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path="/learn/:id"  element={<ProtectedRoute><CoursePlayer /></ProtectedRoute>} />
-      </Route>
+        {/* Public Layout */}
+        <Route
+          element={
+            <>
+              <Navbar />
+              <AuthModal />
+              <Outlet />
+              <Footer />
+            </>
+          }
+        >
+          <Route path="/" element={<Home />} />
 
-      <Route path="/api/auth/github/callback" element={<GithubCallbackRedirect />} />
+          <Route path="/login" element={<LoginPage />} />
 
-      {/* admin routes */}
-      <Route path="/admin" element={<ProtectedRoute adminOnly={true}><AdminLayout /></ProtectedRoute>}>
-        <Route index          element={<AdminDashboard />} />
-        <Route path="courses"      element={<AdminCourses />} />
-        <Route path="team"         element={<AdminUsers />} />
-        <Route path="courses/:id"  element={<EditCourse />} />
-        <Route path="/admin/courses/:id" element={<EditCourse />} />
-      </Route>
-    </Routes>
+          <Route path="/courses" element={<Courses />} />
+
+          <Route
+            path="/courses/:id"
+            element={<CourseDetails />}
+          />
+
+          <Route
+            path="/verify-otp"
+            element={<VerifyOtp />}
+          />
+
+          <Route
+            path="/forgot-password"
+            element={<ForgotPassword />}
+          />
+
+          {/* Protected Student Routes */}
+
+          <Route
+            path="/my-courses"
+            element={
+              <ProtectedRoute>
+                <MyCourses />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/learn/:id"
+            element={
+              <ProtectedRoute>
+                <CoursePlayer />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        {/* GitHub Auth */}
+        <Route
+          path="/api/auth/github/callback"
+          element={<GithubCallbackRedirect />}
+        />
+
+        {/* Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+
+          <Route
+            path="courses"
+            element={<AdminCourses />}
+          />
+
+          <Route
+            path="team"
+            element={<AdminUsers />}
+          />
+
+          <Route
+            path="courses/:id"
+            element={<EditCourse />}
+          />
+
+          <Route
+            path="/admin/courses/:id"
+            element={<EditCourse />}
+          />
+        </Route>
+
+      </Routes>
+    </Suspense>
   );
 }
+
+/* ------------------------------
+   App
+------------------------------ */
 
 export default function App() {
   return (
     <Provider store={appStore}>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="dark"
+        enableSystem
+      >
         <BrowserRouter>
           <AuthProvider>
             <CourseProvider>
+
               <AppRoutes />
-              <Toaster position="top-right" richColors closeButton />
+
+              <Toaster
+                position="top-right"
+                richColors
+                closeButton
+                theme="dark"
+              />
+
             </CourseProvider>
           </AuthProvider>
         </BrowserRouter>
