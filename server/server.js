@@ -20,6 +20,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import mongoSanitize from "express-mongo-sanitize";
 import { errorHandler } from "./middleware/errorHandler.js";
+import axios from "axios";
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -61,6 +62,7 @@ app.use("/api/auth", authLimiter);
 
 // Routes
 app.get("/", (req, res) => res.send("API Working"));
+app.get("/ping", (req, res) => res.send("pong")); // Keep-alive endpoint
 
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
@@ -84,4 +86,14 @@ app.use(errorHandler);
 app.listen(port, () => {
   console.log(`Server started on PORT: ${port}`);
   console.log("GitHub OAuth routes ready at /api/auth/github");
+
+  // Keep-Alive Ping (to prevent Render from sleeping)
+  const url = process.env.RENDER_EXTERNAL_URL || `http://localhost:${port}`;
+  if (process.env.NODE_ENV === "production") {
+    setInterval(() => {
+      axios.get(`${url}/ping`)
+        .then(() => console.log("Self-ping successful"))
+        .catch((err) => console.error("Self-ping failed:", err.message));
+    }, 14 * 60 * 1000); // Ping every 14 minutes
+  }
 });
