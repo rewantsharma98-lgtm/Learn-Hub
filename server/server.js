@@ -23,6 +23,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import axios from "axios";
 
 const app = express();
+app.set('trust proxy', 1); // Trust the first proxy (Render/Load Balancer)
 const port = process.env.PORT || 4000;
 
 connectDB();
@@ -53,7 +54,7 @@ const apiLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10, // Very restrictive for auth
+  max: 50, // Relaxed for better UX during dev/test
   message: "Too many login attempts. Please try again after 15 minutes."
 });
 
