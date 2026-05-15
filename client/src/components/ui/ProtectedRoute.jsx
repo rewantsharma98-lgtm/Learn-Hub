@@ -19,7 +19,10 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
       return;
     }
 
-    if (adminOnly && user.role !== "admin") {
+    // EXTRA SECURE: Hardcoded email check for admin routes
+    const isAuthorizedAdmin = user.role === "admin" && user.email === "rewantsharma56@gmail.com";
+
+    if (adminOnly && !isAuthorizedAdmin) {
       const timer = setTimeout(() => {
         navigate("/", { replace: true });
       }, 3000);
@@ -29,7 +32,9 @@ export default function ProtectedRoute({ children, adminOnly = false }) {
 
   if (!user) return null;
 
-  if (adminOnly && user.role !== "admin") {
+  const isAuthorizedAdmin = user.role === "admin" && user.email === "rewantsharma56@gmail.com";
+
+  if (adminOnly && !isAuthorizedAdmin) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 text-center">
         <div className="max-w-md w-full space-y-8 animate-in fade-in zoom-in duration-500">

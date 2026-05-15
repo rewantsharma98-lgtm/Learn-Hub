@@ -9,8 +9,8 @@ import {
 } from "@aws-sdk/client-s3";
 
 import { s3 } from "../config/r2.js";
-
 import Media from "../model/Media.js";
+import adminAuth from "../middleware/adminAuth.js";
 
 const router = express.Router();
 
@@ -20,9 +20,8 @@ const upload = multer({
 
 router.post(
     "/upload",
-
+    adminAuth,
     upload.single("media"),
-
     async (req, res) => {
 
         try {

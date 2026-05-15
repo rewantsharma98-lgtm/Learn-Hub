@@ -188,7 +188,7 @@ export default function Navbar() {
                         }}
                       />
 
-                      {user.role === "admin" && (
+                      {user.role === "admin" && user.email === "rewantsharma56@gmail.com" && (
                         <DropdownItem
                           icon={<Logo className="w-4 h-4 text-white/70" />}
                           label="Admin Console"

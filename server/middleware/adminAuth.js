@@ -23,12 +23,15 @@ const adminAuth = async (req, res, next) => {
 
         const user = await userModel.findById(decoded.id);
 
-        const isAuthorizedAdmin = user && user.role === "admin" && user.email === process.env.ADMIN_EMAIL;
+        // EXTRA SECURE: Hardcoded email check + role check
+        const isAuthorizedAdmin = user && 
+                                 user.role === "admin" && 
+                                 user.email === "rewantsharma56@gmail.com";
 
         if (!isAuthorizedAdmin) {
             return res.status(403).json({
                 success: false,
-                message: "Access Denied. You are not authorized to access this system."
+                message: "Access Denied. You are not authorized to access the Admin System."
             });
         }
 

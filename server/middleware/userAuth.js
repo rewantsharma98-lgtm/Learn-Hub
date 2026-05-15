@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
+import userModel from "../model/UserModel.js";
 
 const userAuth = async (req, res, next) => {
     try {
-         console.log("COOKIES:", req.cookies); // ADD THIS LINE
         const { token } = req.cookies;
 
         if (!token) {
@@ -20,15 +20,16 @@ const userAuth = async (req, res, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        if (!decoded?.id) {
+        // Verify user exists in database
+        const user = await userModel.findById(decoded.id);
+        if (!user) {
             return res.status(401).json({
                 success: false,
-                message: "Invalid token. Login again."
+                message: "User not found. Login again."
             });
         }
-
         
-        req.user = { id: decoded.id, email: decoded.email || null };
+        req.user = { id: user._id, email: user.email || null, role: user.role };
 
         next();
     } catch (error) {
