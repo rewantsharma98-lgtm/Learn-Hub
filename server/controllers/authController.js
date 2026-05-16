@@ -2,7 +2,6 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import userModel from '../model/UserModel.js';
 import axios from 'axios';
-import { saveToSheet } from "../utils/saveToSheet.js";
 import { sendEmail } from '../config/emailConfig.js';
 import crypto from 'crypto';
 import emailjs from '@emailjs/nodejs';
@@ -82,13 +81,18 @@ const sendEmailJS = async (toEmail, otp) => {
             }
 
         // Send Email via EmailJS from Backend
-        await sendEmailJS(email, otp);
+        const emailSent = await sendEmailJS(email, otp);
 
-        console.log("Saving to Sheety...");
-        await saveToSheet(email);
+        if (!emailSent) {
+            console.log("Email sending failed");
+        }
 
         console.log("Registration successful!");
-        return res.json({ success: true, message: 'OTP generated. Please verify.', otp });
+
+        return res.json({
+            success: true,
+            message: 'OTP generated. Please verify.'
+        });
 
     } catch (error) {
         console.error("Registration error:", error);
