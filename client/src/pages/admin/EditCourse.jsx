@@ -304,6 +304,26 @@ function SectionBlock({ section, courseId, onSectionUpdate, onSectionDelete }) {
   const [addingLecture, setAddingLecture] = useState(false);
   const [newLectureTitle, setNewLectureTitle] = useState("");
   const [saving, setSaving] = useState(false);
+  const [unitNotes, setUnitNotes] = useState(section.notes || "");
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [pyqUrl, setPyqUrl] = useState(section.pyqUrl || "");
+  const [savingPyq, setSavingPyq] = useState(false);
+
+  const handleSaveUnitNotes = async () => {
+    setSavingNotes(true);
+    try {
+      await updateSection(section._id, { notes: unitNotes });
+      onSectionUpdate({ ...section, notes: unitNotes });
+    } finally { setSavingNotes(false); }
+  };
+
+  const handleSavePyq = async () => {
+    setSavingPyq(true);
+    try {
+      await updateSection(section._id, { pyqUrl });
+      onSectionUpdate({ ...section, pyqUrl });
+    } finally { setSavingPyq(false); }
+  };
 
   const handleAddLecture = async () => {
     if (!newLectureTitle.trim()) return;
@@ -390,6 +410,71 @@ function SectionBlock({ section, courseId, onSectionUpdate, onSectionDelete }) {
               <Plus size={12} /> Add Lecture
             </button>
           )}
+
+          {/* Unit Notes */}
+          <div className="border-t border-border/30 pt-4 mt-4 space-y-3">
+            <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block">
+              Unit Notes (Visible to students — view-only, protected)
+            </label>
+            <textarea
+              value={unitNotes}
+              onChange={(e) => setUnitNotes(e.target.value)}
+              rows={6}
+              placeholder="Paste or write unit notes here (Markdown supported). Students can view but NOT download or copy these notes."
+              className="w-full bg-[#111] border border-border rounded-xl px-4 py-3 text-white text-xs font-mono outline-none focus:border-primary/50 transition-all resize-y"
+            />
+            <div className="flex justify-end">
+              <button
+                onClick={handleSaveUnitNotes}
+                disabled={savingNotes}
+                className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all disabled:opacity-50"
+              >
+                {savingNotes ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                Save Unit Notes
+              </button>
+            </div>
+          </div>
+
+          {/* PYQ PDF URL */}
+          <div className="border-t border-border/30 pt-4 mt-2 space-y-3">
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block mb-1">
+                Previous Year Question Paper (PYQ) — Google Drive Embed URL
+              </label>
+              <p className="text-[9px] text-muted-foreground/50 mb-2">
+                Upload your PDF to Google Drive → Share → Copy link → change <code className="text-primary">/view</code> to <code className="text-primary">/preview</code> and paste below.
+              </p>
+              <p className="text-[9px] text-white/30 font-mono mb-2">
+                Format: https://drive.google.com/file/d/FILE_ID/preview
+              </p>
+            </div>
+            <input
+              value={pyqUrl}
+              onChange={(e) => setPyqUrl(e.target.value)}
+              placeholder="https://drive.google.com/file/d/YOUR_FILE_ID/preview"
+              className="w-full bg-[#111] border border-border rounded-xl px-4 py-2.5 text-white text-xs font-medium outline-none focus:border-primary/50 transition-all"
+            />
+            {pyqUrl && (
+              <div className="aspect-[4/3] rounded-xl overflow-hidden border border-border/50 bg-[#111]">
+                <iframe
+                  src={pyqUrl}
+                  className="w-full h-full"
+                  title="PYQ Preview"
+                  allow="autoplay"
+                />
+              </div>
+            )}
+            <div className="flex justify-end">
+              <button
+                onClick={handleSavePyq}
+                disabled={savingPyq}
+                className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all disabled:opacity-50 border border-border"
+              >
+                {savingPyq ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                Save PYQ Link
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -23,6 +23,19 @@ const sectionSchema = new mongoose.Schema(
     type: Number,
     default: 0,
   },
+
+  // Unit-level notes shown to students (view-only, no download)
+  notes: {
+    type: String,
+    default: "",
+  },
+
+  // Google Drive embed URL for PYQ PDFs (view-only, no download)
+  // Use: https://drive.google.com/file/d/FILE_ID/preview
+  pyqUrl: {
+    type: String,
+    default: "",
+  },
 },
 { timestamps: true }
 );

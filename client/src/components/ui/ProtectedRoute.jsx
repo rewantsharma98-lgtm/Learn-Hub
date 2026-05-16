@@ -1,20 +1,16 @@
 
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 import { ShieldAlert } from "lucide-react";
 
 export default function ProtectedRoute({ children, adminOnly = false }) {
   const user = useSelector((state) => state.auth.user);
   const navigate = useNavigate();
-  const location = useLocation();
-  const { openAuthModal } = useAuth();
 
   useEffect(() => {
     if (!user) {
-      openAuthModal(location.pathname);
       navigate("/", { replace: true });
       return;
     }

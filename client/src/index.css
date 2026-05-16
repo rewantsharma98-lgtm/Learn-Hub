@@ -98,7 +98,19 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-  .scrollbar-hide {
+  /* Netflix/Hotstar Style Utilities */
+  .netflix-card {
+    @apply relative transition-transform duration-300 ease-out hover:scale-105 hover:z-50;
+  }
+
+  .netflix-row-mask {
+    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
