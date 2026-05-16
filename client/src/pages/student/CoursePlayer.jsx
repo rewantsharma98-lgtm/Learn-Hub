@@ -373,13 +373,6 @@ export default function CoursePlayer() {
                       {activeTab === "notes" && (
                         <ProtectedContent watermarkText={watermark}>
                           {/* Protected notice */}
-                          <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5 w-fit">
-                            <Shield className="w-3 h-3 text-white/30" />
-                            <span className="text-[9px] text-white/30 uppercase tracking-widest font-bold">
-                              View only · Download disabled
-                            </span>
-                          </div>
-
                           {currentSection.notes?.startsWith("http") ? (
                             <div
                               className="w-full rounded-xl overflow-hidden border border-white/5 bg-[#0F0F0F] relative"
@@ -389,8 +382,8 @@ export default function CoursePlayer() {
                                 src={currentSection.notes}
                                 className="w-full h-full"
                                 title="Unit Notes Preview"
-                                allow="autoplay"
-                                sandbox="allow-scripts allow-same-origin"
+                                allow="autoplay; encrypted-media"
+                                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
                               />
                             </div>
                           ) : (
@@ -408,12 +401,6 @@ export default function CoursePlayer() {
 
                       {activeTab === "pyq" && currentSection?.pyqUrl && (
                         <div className="space-y-3">
-                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/[0.02] border border-white/5 w-fit">
-                            <Shield className="w-3 h-3 text-white/30" />
-                            <span className="text-[9px] text-white/30 uppercase tracking-widest font-bold">
-                              View only · Download disabled
-                            </span>
-                          </div>
                           <div
                             className="w-full rounded-xl overflow-hidden border border-white/5 bg-[#0F0F0F]"
                             style={{ height: "80vh" }}
@@ -423,8 +410,8 @@ export default function CoursePlayer() {
                               src={currentSection.pyqUrl}
                               className="w-full h-full"
                               title="Previous Year Question Paper"
-                              allow="autoplay"
-                              sandbox="allow-scripts allow-same-origin"
+                              allow="autoplay; encrypted-media"
+                              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
                             />
                           </div>
                         </div>
@@ -501,12 +488,6 @@ export default function CoursePlayer() {
                           </span>
                           <BookOpen className="w-4 h-4 text-white/40 group-hover:text-white/70 transition-colors flex-shrink-0" />
                         </button>
-                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white/[0.02] border border-white/5 w-fit">
-                          <Shield className="w-3 h-3 text-white/20" />
-                          <span className="text-[9px] text-white/20 uppercase tracking-widest font-bold">
-                            View only · No download
-                          </span>
-                        </div>
                       </>
                     ) : (
                       <>

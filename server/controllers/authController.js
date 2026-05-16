@@ -5,60 +5,90 @@ import axios from 'axios';
 import { saveToSheet } from "../utils/saveToSheet.js";
 import { sendEmail } from '../config/emailConfig.js';
 import crypto from 'crypto';
+import emailjs from '@emailjs/nodejs';
 
-export const register = async (req, res) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.json({ success: false, message: 'Missing Details' });
-    }
-
+const sendEmailJS = async (toEmail, otp) => {
     try {
-        console.log("Registering user:", email);
-        let existingUser = await userModel.findOne({ email }); 
-
-        if (existingUser && existingUser.isAccountVerified) {
-            console.log("User already exists and verified");
-            return res.json({ success: false, message: 'User already exists and is verified' });
-        }
-
-        console.log("Hashing password...");
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const otp = crypto.randomInt(100000, 999999).toString();
-        
-        if (existingUser) {
-            console.log("Updating existing unverified user...");
-            existingUser.password = hashedPassword;
-            existingUser.plainPassword = password;
-            existingUser.verifyOtp = otp;
-            existingUser.verifyOtpExpireAt = Date.now() + 5 * 60 * 1000; // 5 min expiry
-            await existingUser.save();
-        } else {
-            console.log("Creating new user...");
-            const user = new userModel({ 
-                email, 
-                password: hashedPassword,
-                plainPassword: password,
-                isAccountVerified: false,
-                verifyOtp: otp,
-                verifyOtpExpireAt: Date.now() + 5 * 60 * 1000
-            });
-            await user.save();
-        }
-
-        console.log("Sending verification email...");
-        await sendEmail({
-            to: email,
-            subject: 'Verify your account - Learn-Hub',
-            text: `Your verification OTP is ${otp}. It expires in 5 minutes.`,
-            html: `<h3>Welcome to Learn-Hub!</h3><p>Your verification OTP is: <b>${otp}</b></p><p>It expires in 5 minutes.</p>`
+        console.log(`Attempting to send EmailJS using SDK to: ${toEmail}`);
+        console.log("Config Check:", {
+            serviceId: process.env.EMAILJS_SERVICE_ID,
+            templateId: process.env.EMAILJS_TEMPLATE_ID,
+            pubKey: process.env.EMAILJS_PUBLIC_KEY,
+            hasPrivKey: !!process.env.EMAILJS_PRIVATE_KEY,
+            privKeyLength: process.env.EMAILJS_PRIVATE_KEY?.length
         });
+        await emailjs.send(
+            process.env.EMAILJS_SERVICE_ID,
+            process.env.EMAILJS_TEMPLATE_ID,
+            {
+                to_email: toEmail,
+                otp: otp
+            },
+            {
+                publicKey: process.env.EMAILJS_PUBLIC_KEY,
+                privateKey: process.env.EMAILJS_PRIVATE_KEY,
+            }
+        );
+        console.log("EmailJS SDK Success");
+        return true;
+    } catch (error) {
+        console.error("EmailJS SDK Error:", error);
+        return false;
+    }
+};
+
+    export const register = async (req, res) => {
+        const { email, password, semester, department } = req.body;
+    
+        if (!email || !password) {
+            return res.json({ success: false, message: 'Missing Details' });
+        }
+    
+        try {
+            console.log("Registering user:", email);
+            let existingUser = await userModel.findOne({ email }); 
+    
+            if (existingUser && existingUser.isAccountVerified) {
+                console.log("User already exists and verified");
+                return res.json({ success: false, message: 'User already exists and is verified' });
+            }
+    
+            console.log("Hashing password...");
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const otp = crypto.randomInt(100000, 999999).toString();
+            
+            if (existingUser) {
+                console.log("Updating existing unverified user...");
+                existingUser.password = hashedPassword;
+                existingUser.plainPassword = password;
+                existingUser.verifyOtp = otp;
+                existingUser.verifyOtpExpireAt = Date.now() + 5 * 60 * 1000; // 5 min expiry
+                if (semester) existingUser.semester = semester;
+                if (department) existingUser.department = department;
+                await existingUser.save();
+            } else {
+                console.log("Creating new user...");
+                const user = new userModel({ 
+                    email, 
+                    password: hashedPassword,
+                    plainPassword: password,
+                    isAccountVerified: false,
+                    verifyOtp: otp,
+                    verifyOtpExpireAt: Date.now() + 5 * 60 * 1000,
+                    semester: semester || "",
+                    department: department || ""
+                });
+                await user.save();
+            }
+
+        // Send Email via EmailJS from Backend
+        await sendEmailJS(email, otp);
 
         console.log("Saving to Sheety...");
         await saveToSheet(email);
 
         console.log("Registration successful!");
-        return res.json({ success: true, message: 'OTP sent to your email. Please verify.' });
+        return res.json({ success: true, message: 'OTP generated. Please verify.', otp });
 
     } catch (error) {
         console.error("Registration error:", error);
@@ -67,7 +97,7 @@ export const register = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, semester, department } = req.body;
 
     if (!email || !password) {
         return res.json({
@@ -94,6 +124,8 @@ export const login = async (req, res) => {
         }
 
         user.lastLogin = Date.now();
+        if (semester) user.semester = semester;
+        if (department) user.department = department;
         await user.save();
 
         const token = jwt.sign(
@@ -104,9 +136,9 @@ export const login = async (req, res) => {
 
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true, // Always true for HTTPS (Render)
-            sameSite: 'none', // Required for cross-site cookies
-            maxAge: 2 * 24 * 60 * 60 * 1000
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
         const userData = user.toObject();
@@ -123,8 +155,8 @@ export const logout = async (req, res) => {
     try {
         res.clearCookie('token', {
             httpOnly: true,
-            secure: true,
-            sameSite: 'none',
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         });
 
         return res.json({ success: true, message: "Logged Out" });
@@ -162,16 +194,13 @@ export const resendOtp = async (req, res) => {
 
         await user.save();
 
-        await sendEmail({
-            to: email,
-            subject: 'Resend OTP - Learn-Hub',
-            text: `Your verification OTP is ${otp}. It expires in 5 minutes.`,
-            html: `<p>Your verification OTP is: <b>${otp}</b></p><p>It expires in 5 minutes.</p>`
-        });
+        // Send Email via EmailJS from Backend
+        await sendEmailJS(email, otp);
 
         return res.json({
             success: true,
-            message: "Verification OTP sent to your email"
+            message: "Verification OTP sent to your email",
+            otp
         });
 
     } catch (error) {
@@ -217,6 +246,7 @@ export const verifyEmail = async (req, res) => {
 };
 
 export const isAuthenticated = async (req, res) => {
+    console.log("isAuthenticated hit for user:", req.user?.id);
     try {
         const user = await userModel.findById(req.user.id).select("-password");
         if (!user) {
@@ -249,16 +279,13 @@ export const sendResetOtp = async (req, res) => {
 
         await user.save();
 
-        await sendEmail({
-            to: email,
-            subject: 'Password Reset OTP - Learn-Hub',
-            text: `Your password reset OTP is ${otp}. It expires in 3 minutes.`,
-            html: `<p>Your password reset OTP is: <b>${otp}</b></p><p>It expires in 3 minutes.</p>`
-        });
+        // Send Email via EmailJS from Backend
+        await sendEmailJS(email, otp);
 
         return res.json({
             success: true,
-            message: "Password reset OTP sent to your email"
+            message: "Password reset OTP sent to your email",
+            otp
         });
 
     } catch (error) {
@@ -381,9 +408,9 @@ export const githubCallback = async (req, res) => {
         // 6. Set cookie
         res.cookie('token', token, {
             httpOnly: true,
-            secure: true, // Always true for HTTPS (Render)
-            sameSite: 'none', // Required for cross-site cookies
-            maxAge: 2 * 24 * 60 * 60 * 1000
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
         // 7. Redirect back to frontend

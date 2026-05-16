@@ -15,6 +15,7 @@ import {
   getAllUsersAdmin,
   deleteUserAdmin,
   enrollUserAdmin,
+  updateUserAdmin,
 } from "../controllers/adminController.js";
 import { uploadLectureResource } from "../controllers/lectureController.js";
 import adminAuth from "../middleware/adminAuth.js";
@@ -29,6 +30,7 @@ adminRouter.get("/dashboard", getDashboardStats);
 adminRouter.get("/users", getAllUsersAdmin);
 adminRouter.delete("/users/:id", deleteUserAdmin);
 adminRouter.post("/users/enroll", enrollUserAdmin);
+adminRouter.put("/users/:id", updateUserAdmin);
 
 adminRouter.get("/courses", getAllCoursesAdmin);
 adminRouter.post("/courses", createCourse);

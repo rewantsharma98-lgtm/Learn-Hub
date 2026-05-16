@@ -18,6 +18,7 @@ import {
   useGetEnrolledCoursesQuery,
 } from "@/features/api/courseApi";
 
+import { useSelector } from "react-redux";
 import { toast } from "sonner";
 
 export default function CourseDetails() {
@@ -37,6 +38,27 @@ export default function CourseDetails() {
   );
 
   const course = courses.find((c) => String(c._id) === id);
+  const user = useSelector((state) => state.auth.user);
+
+  const canEnroll = () => {
+    if (!course || !user) return false;
+    if (user.role === "admin") return true;
+
+    const userSem = String(user.semester).toLowerCase().replace(/[^0-9a-z]/g, "");
+    const courseSem = String(course.targetSemester).toLowerCase().replace(/[^0-9a-z]/g, "");
+
+    const matchSem = course.targetSemester === "All" || 
+                     userSem === courseSem || 
+                     course.category?.toLowerCase().includes(userSem);
+    
+    const matchDept = course.targetDepartment === "All" || 
+                      course.targetDepartment === "Common" || 
+                      course.targetDepartment === user.department;
+                      
+    return matchSem && matchDept;
+  };
+
+  const isAllowed = canEnroll();
 
   if (!course) {
     return (
@@ -55,6 +77,11 @@ export default function CourseDetails() {
     if (isEnrolled) {
       navigate(`/learn/${id}`);
       return;
+    }
+
+    if (!isAllowed) {
+       toast.error("You are not eligible to enroll in this course based on your semester and department.");
+       return;
     }
 
     try {
@@ -204,7 +231,7 @@ export default function CourseDetails() {
                 <ProtectedAction>
                   <button
                     onClick={handleEnroll}
-                    disabled={isEnrolling}
+                    disabled={isEnrolling || (!isEnrolled && !isAllowed)}
                     className="
                       w-full
                       h-11
@@ -215,12 +242,16 @@ export default function CourseDetails() {
                       font-medium
                       hover:bg-white/90
                       transition-colors
+                      disabled:opacity-50
+                      disabled:cursor-not-allowed
                     "
                   >
                     {isEnrolling
                       ? "Processing..."
                       : isEnrolled
                       ? "Continue Learning"
+                      : !isAllowed
+                      ? "Restricted Access"
                       : "Enroll Now"}
                   </button>
                 </ProtectedAction>
@@ -405,7 +436,7 @@ export default function CourseDetails() {
                 <ProtectedAction>
                   <button
                     onClick={handleEnroll}
-                    disabled={isEnrolling}
+                    disabled={isEnrolling || (!isEnrolled && !isAllowed)}
                     className="
                       w-full
                       h-11
@@ -416,12 +447,16 @@ export default function CourseDetails() {
                       font-medium
                       hover:bg-white/90
                       transition-colors
+                      disabled:opacity-50
+                      disabled:cursor-not-allowed
                     "
                   >
                     {isEnrolling
                       ? "Processing..."
                       : isEnrolled
                       ? "Continue Learning"
+                      : !isAllowed
+                      ? "Restricted Access"
                       : "Enroll Now"}
                   </button>
                 </ProtectedAction>

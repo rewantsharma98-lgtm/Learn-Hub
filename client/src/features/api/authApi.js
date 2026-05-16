@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { userLoggedIn, userLoggedOut } from "../authSlice";
-import { sendOtpEmail } from "@/lib/emailService";
 
 const USER_API = `${import.meta.env.VITE_API_URL}/api/auth`;
 
@@ -10,28 +9,20 @@ export const authApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: USER_API,
     credentials: "include",
+    prepareHeaders: (headers) => {
+      headers.set("Accept", "application/json");
+      return headers;
+    },
   }),
 
   endpoints: (builder) => ({
     // ── Register ─────────────────────────────────────────────────────────────
-    // Backend stores the OTP in MongoDB and returns it.
-    // We then send the OTP email client-side via EmailJS.
     registerUser: builder.mutation({
       query: (data) => ({
         url: "/register",
         method: "POST",
         body: data,
       }),
-      async onQueryStarted(arg, { queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          if (data.success && data.otp) {
-            await sendOtpEmail(arg.email, data.otp);
-          }
-        } catch {
-          // Errors are surfaced in the component via mutation result
-        }
-      },
     }),
 
     // ── Load logged-in user ───────────────────────────────────────────────────
@@ -45,16 +36,12 @@ export const authApi = createApi({
           const { data } = await queryFulfilled;
           if (data.success && data.user) {
             dispatch(userLoggedIn({ user: data.user }));
-          } else {
-            dispatch(userLoggedOut());
           }
-        } catch {
-          dispatch(userLoggedOut());
-        }
+        } catch {}
       },
     }),
 
-    // ── Login ─────────────────────────────────────────────────────────────────
+    // ── Login ────────────────────────────────────────────────────────────────
     loginUser: builder.mutation({
       query: (data) => ({
         url: "/login",
@@ -71,31 +58,22 @@ export const authApi = createApi({
       },
     }),
 
-    // ── Verify email OTP ──────────────────────────────────────────────────────
+    // ── Verify Email/OTP ──────────────────────────────────────────────────────
     verifyEmail: builder.mutation({
       query: (data) => ({
-        url: "/verify-account",
+        url: "/verify-email",
         method: "POST",
         body: data,
       }),
     }),
 
     // ── Resend OTP ────────────────────────────────────────────────────────────
-    // Backend generates a fresh OTP and returns it; we send via EmailJS.
     resendOtp: builder.mutation({
       query: (email) => ({
         url: "/resend-otp",
         method: "POST",
         body: { email },
       }),
-      async onQueryStarted(arg, { queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          if (data.success && data.otp) {
-            await sendOtpEmail(arg, data.otp);
-          }
-        } catch {}
-      },
     }),
 
     // ── Logout ────────────────────────────────────────────────────────────────
@@ -121,14 +99,6 @@ export const authApi = createApi({
         method: "POST",
         body: { email },
       }),
-      async onQueryStarted(arg, { queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          if (data.success && data.otp) {
-            await sendOtpEmail(arg, data.otp);
-          }
-        } catch {}
-      },
     }),
 
     // ── Reset password ────────────────────────────────────────────────────────

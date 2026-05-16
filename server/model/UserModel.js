@@ -54,6 +54,14 @@ lastLogin: {
   type: Date,
   default: null,
 },
+semester: {
+  type: String,
+  default: "",
+},
+department: {
+  type: String,
+  default: "",
+},
 })
 
 const userModel =  mongoose.models.user || mongoose.model('user',userSchema);

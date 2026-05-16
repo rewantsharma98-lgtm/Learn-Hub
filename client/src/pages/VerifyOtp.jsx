@@ -57,49 +57,48 @@ export default function VerifyOtp() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[440px] space-y-12 relative z-10"
+        className="w-full max-w-[400px] bg-[#0F0F0F] border border-white/10 rounded-2xl p-8 shadow-2xl relative z-10"
       >
-        <div className="text-center space-y-6">
+        <div className="text-center space-y-4 mb-8">
            <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-[2rem] bg-white/[0.02] border border-white/10 flex items-center justify-center text-primary relative group">
-                 <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                 <Fingerprint size={32} className="relative z-10" />
+              <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/80">
+                 <ShieldCheck size={24} />
               </div>
            </div>
-           <div className="space-y-2">
-              <h1 className="text-white text-4xl font-bold tracking-tighter">Zero-Trust Access.</h1>
-              <p className="text-white/30 text-sm max-w-[300px] mx-auto">Verify your identity with the security code sent to your academic inbox.</p>
+           <div className="space-y-1">
+              <h1 className="text-white text-xl font-semibold">Verification Required</h1>
+              <p className="text-white/50 text-sm">Verify your identity with the security code sent to your academic inbox.</p>
            </div>
         </div>
 
-        <form onSubmit={handleVerify} className="space-y-8">
+        <form onSubmit={handleVerify} className="space-y-5">
            <div className="space-y-4">
-              <div className="space-y-2">
-                 <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em] ml-1">Email Node</label>
+              <div className="space-y-1.5">
+                 <label className="text-xs font-medium text-white/70">Academic Email</label>
                  <div className="relative group">
-                    <Mail size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-primary transition-colors" />
+                    <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white transition-colors" />
                     <input
                        type="email"
                        value={email}
                        onChange={(e) => setEmail(e.target.value)}
                        required
-                       className="w-full bg-white/[0.02] border border-white/5 rounded-2xl py-4 pl-14 pr-4 text-sm text-white/80 focus:outline-none focus:border-primary/50 focus:bg-white/[0.04] transition-all"
+                       className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg h-10 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-white/30 transition-all"
                        placeholder="identity@academy.edu"
                     />
                  </div>
               </div>
 
-              <div className="space-y-2">
-                 <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em] ml-1">Security Code</label>
+              <div className="space-y-1.5">
+                 <label className="text-xs font-medium text-white/70">Security Code</label>
                  <div className="relative group">
-                    <Lock size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-primary transition-colors" />
+                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 group-focus-within:text-white transition-colors" />
                     <input
                        type="text"
                        value={otp}
                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                        required
                        maxLength={6}
-                       className="w-full bg-white/[0.02] border border-white/5 rounded-2xl py-5 pl-14 pr-4 text-2xl font-black text-white tracking-[0.8em] focus:outline-none focus:border-primary/50 focus:bg-white/[0.04] transition-all"
+                       className="w-full bg-[#0A0A0A] border border-white/10 rounded-lg h-12 pl-10 pr-4 text-xl font-bold tracking-[0.5em] text-white focus:outline-none focus:border-white/30 transition-all"
                        placeholder="000000"
                     />
                  </div>
@@ -109,27 +108,27 @@ export default function VerifyOtp() {
            <button
               type="submit"
               disabled={isLoading || otp.length < 6}
-              className="w-full bg-white text-black py-5 rounded-2xl text-[10px] font-bold uppercase tracking-[0.3em] hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl disabled:opacity-30 disabled:hover:scale-100"
+              className="w-full bg-white text-black h-10 rounded-lg text-sm font-medium hover:bg-white/90 transition-colors disabled:opacity-50 mt-2"
            >
-              {isLoading ? "Authenticating..." : "Establish Connection"}
+              {isLoading ? "Verifying..." : "Verify Identity"}
            </button>
         </form>
 
-        <div className="flex flex-col gap-6 items-center">
+        <div className="flex flex-col gap-4 mt-6 items-center">
            <button
               onClick={handleResend}
               disabled={isResending}
-              className="text-[9px] font-bold text-white/20 uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-2"
+              className="text-xs text-white/50 hover:text-white transition-colors flex items-center gap-2"
            >
               <RotateCcw size={14} className={isResending ? "animate-spin" : ""} />
-              {isResending ? "Transmitting..." : "Resend Security Code"}
+              {isResending ? "Sending..." : "Resend Security Code"}
            </button>
 
            <button
               onClick={() => navigate("/")}
-              className="flex items-center gap-2 text-[9px] font-bold text-white/10 uppercase tracking-widest hover:text-white transition-colors"
+              className="flex items-center gap-2 text-xs text-white/30 hover:text-white transition-colors"
            >
-              <ArrowLeft size={14} /> Back to Hub
+              <ArrowLeft size={14} /> Back to Home
            </button>
         </div>
       </motion.div>

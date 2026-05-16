@@ -10,6 +10,7 @@ export const fetchDashboardStats = () => API.get("/api/admin/dashboard");
 export const fetchAdminUsers = () => API.get("/api/admin/users");
 export const deleteAdminUser = (id) => API.delete(`/api/admin/users/${id}`);
 export const enrollAdminUser = (data) => API.post("/api/admin/users/enroll", data);
+export const updateAdminUser = (id, data) => API.put(`/api/admin/users/${id}`, data);
 
 export const fetchAdminCourses = () => API.get("/api/admin/courses");
 export const createCourse = (data) => API.post("/api/admin/courses", data);

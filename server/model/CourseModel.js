@@ -111,6 +111,21 @@ const courseSchema = new mongoose.Schema(
     type: Boolean,
     default: true,
   },
+
+  targetSemester: {
+    type: String,
+    default: "All",
+  },
+
+  targetDepartment: {
+    type: String,
+    default: "All",
+  },
+
+  isLocked: {
+    type: Boolean,
+    default: false,
+  },
 },
 { timestamps: true }
 );

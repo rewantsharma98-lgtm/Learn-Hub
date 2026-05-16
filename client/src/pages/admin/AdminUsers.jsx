@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchAdminUsers, fetchAdminCourses, enrollAdminUser, deleteAdminUser } from "@/features/api/adminApi";
-import { Users, Shield, Loader2, Plus, Check, X, Trash2, Key, BookOpen, Activity, ChevronRight, Search } from "lucide-react";
+import { fetchAdminUsers, fetchAdminCourses, enrollAdminUser, deleteAdminUser, updateAdminUser } from "@/features/api/adminApi";
+import { Users, Shield, Loader2, Plus, Check, X, Trash2, Key, BookOpen, Activity, ChevronRight, Search, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,8 +10,11 @@ export default function AdminUsers() {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [enrollModal, setEnrollModal] = useState(null);
+  const [editUserModal, setEditUserModal] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [enrolling, setEnrolling] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [editForm, setEditForm] = useState({ semester: "", department: "" });
   const [search, setSearch] = useState("");
 
   useEffect(() => {
@@ -50,6 +53,22 @@ export default function AdminUsers() {
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to delete user");
+    }
+  };
+
+  const handleUpdateUser = async () => {
+    setUpdating(true);
+    try {
+      const res = await updateAdminUser(editUserModal._id, editForm);
+      if (res.data.success) {
+        toast.success("User profile updated");
+        setUsers(users.map(u => u._id === editUserModal._id ? res.data.user : u));
+        setEditUserModal(null);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update user");
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -103,7 +122,7 @@ export default function AdminUsers() {
                <thead>
                   <tr className="border-b border-white/[0.05] bg-white/[0.01]">
                      <th className="px-10 py-8 text-[9px] font-bold uppercase tracking-[0.4em] text-white/20">Identity Signature</th>
-                     <th className="px-10 py-8 text-[9px] font-bold uppercase tracking-[0.4em] text-white/20">Access Token</th>
+                     <th className="px-10 py-8 text-[9px] font-bold uppercase tracking-[0.4em] text-white/20">Academic Profile</th>
                      <th className="px-10 py-8 text-[9px] font-bold uppercase tracking-[0.4em] text-white/20">Curriculum Load</th>
                      <th className="px-10 py-8 text-[9px] font-bold uppercase tracking-[0.4em] text-white/20">Status</th>
                      <th className="px-10 py-8 text-[9px] font-bold uppercase tracking-[0.4em] text-white/20 text-right">Protocol</th>
@@ -124,9 +143,19 @@ export default function AdminUsers() {
                            </div>
                         </td>
                         <td className="px-10 py-8">
-                           <div className="flex items-center gap-3 text-white/30 font-mono text-[10px]">
-                              <Key size={12} className="opacity-30" />
-                              <span className="tracking-widest">{user.plainPassword || "••••••••"}</span>
+                           <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                                 <BookOpen size={12} className="opacity-50" />
+                                 Sem: {user.semester || "N/A"}
+                              </div>
+                              <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                                 <Activity size={12} className="opacity-50" />
+                                 Dept: {user.department || "N/A"}
+                              </div>
+                              <div className="flex items-center gap-2 text-white/30 text-[9px] font-mono mt-1">
+                                 <Key size={10} className="opacity-30" />
+                                 {user.plainPassword || "••••••••"}
+                              </div>
                            </div>
                         </td>
                         <td className="px-10 py-8">
@@ -157,12 +186,15 @@ export default function AdminUsers() {
                            <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                               {user.role !== "admin" && (
                                  <>
-                                    <button onClick={() => setEnrollModal(user)} className="p-3 rounded-xl hover:bg-white/[0.05] text-white/20 hover:text-primary transition-all" title="Initialize Enrollment">
-                                       <Plus size={16} />
-                                    </button>
-                                    <button onClick={() => handleDeleteUser(user._id)} className="p-3 rounded-xl hover:bg-red-500/10 text-white/20 hover:text-red-500 transition-all" title="Purge Identity">
-                                       <Trash2 size={16} />
-                                    </button>
+                                     <button onClick={() => { setEditUserModal(user); setEditForm({ semester: user.semester || "", department: user.department || "" }); }} className="p-3 rounded-xl hover:bg-white/[0.05] text-white/20 hover:text-primary transition-all" title="Edit Profile">
+                                        <Pencil size={16} />
+                                     </button>
+                                     <button onClick={() => setEnrollModal(user)} className="p-3 rounded-xl hover:bg-white/[0.05] text-white/20 hover:text-primary transition-all" title="Initialize Enrollment">
+                                        <Plus size={16} />
+                                     </button>
+                                     <button onClick={() => handleDeleteUser(user._id)} className="p-3 rounded-xl hover:bg-red-500/10 text-white/20 hover:text-red-500 transition-all" title="Purge Identity">
+                                        <Trash2 size={16} />
+                                     </button>
                                  </>
                               )}
                               {user.role === "admin" && (
@@ -218,6 +250,69 @@ export default function AdminUsers() {
                         className="w-full py-5 bg-white text-black rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30"
                      >
                         {enrolling ? "Synchronizing..." : "Authorize Access"}
+                     </button>
+                  </div>
+               </motion.div>
+            </div>
+         )}
+      </AnimatePresence>
+
+      {/* Edit Profile Modal */}
+      <AnimatePresence>
+         {editUserModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-background/90 backdrop-blur-3xl">
+               <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="w-full max-w-[500px] bg-background border border-white/[0.05] rounded-[3rem] overflow-hidden shadow-2xl"
+               >
+                  <div className="p-10 border-b border-white/[0.05] flex items-center justify-between">
+                     <div className="space-y-1">
+                        <h3 className="text-white text-xl font-bold tracking-tight">Edit Academic Profile</h3>
+                        <p className="text-white/20 text-[10px] font-bold uppercase tracking-widest">{editUserModal.name}</p>
+                     </div>
+                     <button onClick={() => setEditUserModal(null)} className="text-white/20 hover:text-white transition-colors">
+                        <X size={20} />
+                     </button>
+                  </div>
+                  
+                  <div className="p-10 space-y-6">
+                     <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em] ml-1">Semester</label>
+                        <select
+                           value={editForm.semester}
+                           onChange={(e) => setEditForm(prev => ({ ...prev, semester: e.target.value }))}
+                           className="w-full bg-white/[0.02] border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:outline-none focus:border-primary/50 transition-all appearance-none"
+                        >
+                           <option value="" className="bg-background">-- Select Semester --</option>
+                           {["1", "2", "3", "4", "5", "6"].map(sem => (
+                              <option key={sem} value={sem} className="bg-background">Semester {sem}</option>
+                           ))}
+                        </select>
+                     </div>
+
+                     <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.3em] ml-1">Department</label>
+                        <select
+                           value={editForm.department}
+                           onChange={(e) => setEditForm(prev => ({ ...prev, department: e.target.value }))}
+                           className="w-full bg-white/[0.02] border border-white/5 rounded-2xl py-4 px-6 text-sm text-white focus:outline-none focus:border-primary/50 transition-all appearance-none"
+                        >
+                           <option value="" className="bg-background">-- Select Department --</option>
+                           <option value="Common" className="bg-background">Common (1st Year)</option>
+                           {["Computer Science", "Civil", "Mechanical", "Electrical"].map(dept => (
+                              <option key={dept} value={dept} className="bg-background">{dept}</option>
+                           ))}
+                        </select>
+                     </div>
+
+                     <button 
+                        onClick={handleUpdateUser}
+                        disabled={updating}
+                        className="w-full py-5 bg-white text-black rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 mt-4"
+                     >
+                        {updating ? "Saving..." : "Save Profile"}
                      </button>
                   </div>
                </motion.div>

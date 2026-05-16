@@ -16,6 +16,8 @@ export default function AuthModal() {
   const [password, setPassword] = useState("");
   const [isSignup, setIsSignup] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [semester, setSemester] = useState("");
+  const [department, setDepartment] = useState("");
 
   const navigate = useNavigate();
 
@@ -29,7 +31,11 @@ export default function AuthModal() {
 
     try {
       if (isSignup) {
-        const res = await registerUser({ email, password }).unwrap();
+        if (!semester || (!["1", "2"].includes(semester) && !department)) {
+           setErrorMsg("Please select your semester and department");
+           return;
+        }
+        const res = await registerUser({ email, password, semester, department }).unwrap();
         if (!res.success) {
           setErrorMsg(res.message || "Registration failed");
           return;
@@ -38,7 +44,11 @@ export default function AuthModal() {
         closeAuthModal();
         navigate("/verify-otp", { state: { email } });
       } else {
-        const res = await loginUser({ email, password }).unwrap();
+        const payload = { email, password };
+        if (semester) payload.semester = semester;
+        if (department) payload.department = department;
+
+        const res = await loginUser(payload).unwrap();
         if (!res.success) {
           if (res.notVerified) {
             closeAuthModal();
@@ -51,7 +61,7 @@ export default function AuthModal() {
         }
         toast.success("Authentication successful");
         closeAuthModal();
-        navigate(pendingRoute || "/my-courses");
+        navigate(pendingRoute || "/");
       }
     } catch (err) {
       setErrorMsg(err?.data?.message || "Secure handshake failed");
@@ -111,6 +121,54 @@ export default function AuthModal() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+           {isSignup && (
+             <div className="space-y-3 mb-4 animate-in fade-in slide-in-from-top-1">
+               <div className="space-y-1.5">
+                 <label className="text-[10px] font-black uppercase tracking-widest text-white/50">Semester</label>
+               <div className="grid grid-cols-4 gap-2">
+                 {["1", "2", "3", "4", "5", "6"].map((sem) => (
+                   <button
+                     key={sem}
+                     type="button"
+                     onClick={() => { setSemester(sem); if (["1", "2"].includes(sem)) setDepartment("Common"); }}
+                     className={cn(
+                       "h-8 rounded-md text-xs font-medium transition-colors border",
+                       semester === sem 
+                         ? "bg-white text-black border-white" 
+                         : "bg-[#111] text-white/60 border-white/10 hover:border-white/30"
+                     )}
+                   >
+                     Sem {sem}
+                   </button>
+                 ))}
+               </div>
+             </div>
+
+             {semester && !["1", "2"].includes(semester) && (
+               <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                 <label className="text-[10px] font-black uppercase tracking-widest text-white/50">Department</label>
+                 <div className="grid grid-cols-2 gap-2">
+                   {["Computer Science", "Civil", "Mechanical", "Electrical"].map((dept) => (
+                     <button
+                       key={dept}
+                       type="button"
+                       onClick={() => setDepartment(dept)}
+                       className={cn(
+                         "h-8 rounded-md text-[11px] font-medium transition-colors border",
+                         department === dept 
+                           ? "bg-white text-black border-white" 
+                           : "bg-[#111] text-white/60 border-white/10 hover:border-white/30"
+                       )}
+                     >
+                       {dept}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+             )}
+           </div>
+           )}
+
            <div className="space-y-1.5">
               <label className="text-xs font-medium text-white/70">Email</label>
               <div className="relative">

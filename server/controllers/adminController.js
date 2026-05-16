@@ -315,6 +315,8 @@ export const getAllUsersAdmin = async (req, res, next) => {
           plainPassword: 1,
           lastLogin: 1,
           createdAt: 1,
+          semester: 1,
+          department: 1,
           enrolledCourses: "$courseData.title",
         },
       },
@@ -368,6 +370,28 @@ export const enrollUserAdmin = async (req, res, next) => {
     await enrollment.save();
 
     res.json({ success: true, message: "User successfully enrolled." });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ─── Update User (admin view) ─────────────────────────────────────────────────
+export const updateUserAdmin = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { semester, department } = req.body;
+    
+    const user = await UserModel.findByIdAndUpdate(
+      id,
+      { semester, department },
+      { new: true }
+    );
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    
+    res.json({ success: true, message: "User updated successfully", user });
   } catch (error) {
     next(error);
   }

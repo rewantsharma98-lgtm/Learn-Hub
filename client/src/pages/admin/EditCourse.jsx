@@ -433,7 +433,8 @@ function SectionBlock({ section, courseId, onSectionUpdate, onSectionDelete }) {
                   src={unitNotes}
                   className="w-full h-full"
                   title="Notes Preview"
-                  allow="autoplay"
+                  allow="autoplay; encrypted-media"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
                 />
               </div>
             )}
@@ -474,7 +475,8 @@ function SectionBlock({ section, courseId, onSectionUpdate, onSectionDelete }) {
                   src={pyqUrl}
                   className="w-full h-full"
                   title="PYQ Preview"
-                  allow="autoplay"
+                  allow="autoplay; encrypted-media"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
                 />
               </div>
             )}
@@ -610,16 +612,50 @@ export default function EditCourse() {
             <select
               id="field-status"
               defaultValue={course.status}
-              className="bg-[#1a1a1a] border border-border rounded-xl px-4 py-2.5 text-white text-xs font-medium outline-none focus:border-primary/50 transition-all"
+              className="bg-[#1a1a1a] border border-border rounded-xl px-4 py-2.5 text-white text-xs font-medium outline-none focus:border-primary/50 transition-all w-full"
             >
               <option>Draft</option>
               <option>Published</option>
             </select>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5">Target Semester</label>
+              <select
+                id="field-targetSemester"
+                defaultValue={course.targetSemester || "All"}
+                className="bg-[#1a1a1a] border border-border rounded-xl px-4 py-2.5 text-white text-xs font-medium outline-none focus:border-primary/50 transition-all w-full"
+              >
+                <option value="All">All Semesters</option>
+                <option value="1">Semester 1</option>
+                <option value="2">Semester 2</option>
+                <option value="3">Semester 3</option>
+                <option value="4">Semester 4</option>
+                <option value="5">Semester 5</option>
+                <option value="6">Semester 6</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block mb-1.5">Target Department</label>
+              <select
+                id="field-targetDepartment"
+                defaultValue={course.targetDepartment || "All"}
+                className="bg-[#1a1a1a] border border-border rounded-xl px-4 py-2.5 text-white text-xs font-medium outline-none focus:border-primary/50 transition-all w-full"
+              >
+                <option value="All">All Departments</option>
+                <option value="Common">Common (1st Year)</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Civil">Civil</option>
+                <option value="Mechanical">Mechanical</option>
+                <option value="Electrical">Electrical</option>
+              </select>
+            </div>
+          </div>
           <button
             onClick={async () => {
               setSaving(true);
-              const fields = ["title", "subtitle", "description", "thumbnail", "trailerVideo", "status"];
+              const fields = ["title", "subtitle", "description", "thumbnail", "trailerVideo", "status", "targetSemester", "targetDepartment"];
               const payload = {};
               fields.forEach((f) => {
                 const el = document.getElementById(`field-${f}`);

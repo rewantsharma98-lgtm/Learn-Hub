@@ -1,6 +1,7 @@
 import EnrollmentModel from "../model/EnrollmentModel.js";
 import ProgressModel from "../model/ProgressModel.js";
 import courseModel from "../model/CourseModel.js";
+import userModel from "../model/UserModel.js";
 
 export const enrollInCourse = async (req, res) => {
     try {
@@ -11,6 +12,34 @@ export const enrollInCourse = async (req, res) => {
         const existing = await EnrollmentModel.findOne({ user: userId, course: courseId });
         if (existing) {
             return res.json({ success: false, message: "Already enrolled in this course" });
+        }
+
+        // Fetch user and course to check semester compatibility
+        const user = await userModel.findById(userId);
+        const course = await courseModel.findById(courseId);
+
+        if (!user || !course) {
+            return res.json({ success: false, message: "User or Course not found" });
+        }
+
+        // CHECK IF COURSE IS LOCKED
+        if (course.isLocked && user.role !== 'admin') {
+            return res.status(403).json({ 
+                success: false,
+                message: "Enrollment is currently locked for this course. Please wait for the official launch!",
+                isLocked: true 
+            });
+        }
+
+        // Restriction: Student semester must match course target semester
+        // If course targetSemester is "All", anyone can enroll
+        if (course.targetSemester !== "All" && user.role !== "admin") {
+            if (user.semester !== course.targetSemester) {
+                return res.json({ 
+                    success: false, 
+                    message: `Academic Restriction: You are in Semester ${user.semester}. You can only enroll in Semester ${user.semester} courses.` 
+                });
+            }
         }
 
         const enrollment = new EnrollmentModel({
