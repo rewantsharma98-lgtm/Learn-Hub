@@ -1,4 +1,10 @@
 {
+  "name": "Learn-Hub",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "npm install --prefix server && npm install --prefix client",
+    "start": "node server/server.js"
+  },
   "dependencies": {
     "firebase": "^12.13.0"
   }

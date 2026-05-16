@@ -303,9 +303,9 @@ export default function HeroSection() {
             <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/10"> <span className="text-primary ml-2">EKTA</span></p>
             <div className="flex flex-wrap items-center justify-center gap-6">
               {[
-                { name: "KaiCosmic", link: "https://instagram.com/kaicosmic" },
-                { name: "Abhinandan", link: "https://instagram.com/abhinandan" },
-                { name: "Rehan", link: "https://instagram.com/rehan" }
+                { name: "KaiCosmic", link: "https://www.instagram.com/rewant_sh?igsh=MTJ4YjE2N283dTk5bA==" },
+                { name: "Abhinandan", link: "https://www.instagram.com/_abhinandan.barman_?igsh=dWZvcW54d2traHN0" },
+                { name: "Rehan", link: "https://www.instagram.com/_rehanfirdosh?igsh=NThqM255aGx5YXU1" }
               ].map((dev, i) => (
                 <a
                   key={i}
@@ -340,12 +340,7 @@ export default function HeroSection() {
             <ArrowRight className="w-4 h-4" />
           </button>
 
-          <button
-            onClick={() => navigate(user ? "/profile" : "/login")}
-            className="h-12 md:h-14 px-8 md:px-10 rounded-full border border-white/10 bg-white/[0.03] text-white text-sm font-bold hover:bg-white/10 transition-all backdrop-blur-xl"
-          >
-            {user ? "View Profile" : "Student Login"}
-          </button>
+          
         </motion.div>
 
         {/* DASHBOARD PREVIEW (PERSPECTIVE) */}
