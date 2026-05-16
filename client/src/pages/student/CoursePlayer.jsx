@@ -380,14 +380,29 @@ export default function CoursePlayer() {
                             </span>
                           </div>
 
-                          <div
-                            className="prose prose-invert prose-headings:text-white prose-p:text-white/60 max-w-none text-[13px] sm:text-sm bg-[#0F0F0F] border border-white/5 p-4 sm:p-6 rounded-xl"
-                            style={{ pointerEvents: "none" }}
-                          >
-                            <ReactMarkdown>
-                              {currentSection.notes}
-                            </ReactMarkdown>
-                          </div>
+                          {currentSection.notes?.startsWith("http") ? (
+                            <div
+                              className="w-full rounded-xl overflow-hidden border border-white/5 bg-[#0F0F0F] relative"
+                              style={{ height: "80vh" }}
+                            >
+                              <iframe
+                                src={currentSection.notes}
+                                className="w-full h-full"
+                                title="Unit Notes Preview"
+                                allow="autoplay"
+                                sandbox="allow-scripts allow-same-origin"
+                              />
+                            </div>
+                          ) : (
+                            <div
+                              className="prose prose-invert prose-headings:text-white prose-p:text-white/60 max-w-none text-[13px] sm:text-sm bg-[#0F0F0F] border border-white/5 p-4 sm:p-6 rounded-xl"
+                              style={{ pointerEvents: "none" }}
+                            >
+                              <ReactMarkdown>
+                                {currentSection.notes}
+                              </ReactMarkdown>
+                            </div>
+                          )}
                         </ProtectedContent>
                       )}
 

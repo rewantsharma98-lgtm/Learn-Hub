@@ -411,18 +411,32 @@ function SectionBlock({ section, courseId, onSectionUpdate, onSectionDelete }) {
             </button>
           )}
 
-          {/* Unit Notes */}
+          {/* Unit Notes PDF URL */}
           <div className="border-t border-border/30 pt-4 mt-4 space-y-3">
-            <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block">
-              Unit Notes (Visible to students — view-only, protected)
-            </label>
-            <textarea
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground block mb-1">
+                Unit Notes (PDF) — Google Drive Embed URL
+              </label>
+              <p className="text-[9px] text-muted-foreground/50 mb-2">
+                Upload your PDF to Google Drive → Share → Copy link → change <code className="text-primary">/view</code> to <code className="text-primary">/preview</code> and paste below.
+              </p>
+            </div>
+            <input
               value={unitNotes}
               onChange={(e) => setUnitNotes(e.target.value)}
-              rows={6}
-              placeholder="Paste or write unit notes here (Markdown supported). Students can view but NOT download or copy these notes."
-              className="w-full bg-[#111] border border-border rounded-xl px-4 py-3 text-white text-xs font-mono outline-none focus:border-primary/50 transition-all resize-y"
+              placeholder="https://drive.google.com/file/d/YOUR_FILE_ID/preview"
+              className="w-full bg-[#111] border border-border rounded-xl px-4 py-2.5 text-white text-xs font-medium outline-none focus:border-primary/50 transition-all"
             />
+            {unitNotes && unitNotes.includes("http") && (
+              <div className="aspect-[4/3] rounded-xl overflow-hidden border border-border/50 bg-[#111]">
+                <iframe
+                  src={unitNotes}
+                  className="w-full h-full"
+                  title="Notes Preview"
+                  allow="autoplay"
+                />
+              </div>
+            )}
             <div className="flex justify-end">
               <button
                 onClick={handleSaveUnitNotes}
@@ -430,7 +444,7 @@ function SectionBlock({ section, courseId, onSectionUpdate, onSectionDelete }) {
                 className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all disabled:opacity-50"
               >
                 {savingNotes ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
-                Save Unit Notes
+                Save Unit Notes Link
               </button>
             </div>
           </div>
